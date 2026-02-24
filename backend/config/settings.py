@@ -41,6 +41,8 @@ TENANT_APPS = [
     "django.contrib.sessions",
     "django.contrib.admin",
     'users',  # your custom user model lives here
+    "allauth",
+    "allauth.account",
 ]
 
 INSTALLED_APPS = SHARED_APPS + TENANT_APPS + [
@@ -51,14 +53,15 @@ INSTALLED_APPS = SHARED_APPS + TENANT_APPS + [
 
 
 MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
     'common.middlewares.PathBasedTenantMiddleware',
+    'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -79,6 +82,13 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
+
+# AUTHENTICATION CONFIGURATION
+# ------------------------------------------------------------------------------
+AUTHENTICATION_BACKENDS = (
+    "django.contrib.auth.backends.ModelBackend",
+    'allauth.account.auth_backends.AuthenticationBackend',
+)
 
 
 # Database
