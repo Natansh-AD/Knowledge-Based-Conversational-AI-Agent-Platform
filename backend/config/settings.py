@@ -40,28 +40,29 @@ TENANT_APPS = [
     "django.contrib.auth",
     "django.contrib.sessions",
     "django.contrib.admin",
+    'rest_framework',
+    'rest_framework_simplejwt',
     'users',  # your custom user model lives here
-    "allauth",
-    "allauth.account",
+    'api',
 ]
 
 INSTALLED_APPS = SHARED_APPS + TENANT_APPS + [
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',
 ]
 
 
 MIDDLEWARE = [
-    'common.middlewares.PathBasedTenantMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    
+    'common.middlewares.PathBasedTenantMiddleware',
+
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'allauth.account.middleware.AccountMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -82,13 +83,6 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'config.wsgi.application'
-
-# AUTHENTICATION CONFIGURATION
-# ------------------------------------------------------------------------------
-AUTHENTICATION_BACKENDS = (
-    "django.contrib.auth.backends.ModelBackend",
-    'allauth.account.auth_backends.AuthenticationBackend',
-)
 
 
 # Database
@@ -133,13 +127,24 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 REST_FRAMEWORK = {
-    # Use Django's standard `django.contrib.auth` permissions,
-    # or allow read-only access for unauthenticated users.
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.DjangoModelPermissionsOrAnonReadOnly'
-    ]
+    "DEFAULT_AUTHENTICATION_CLASSES": (
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+    "DEFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions.IsAuthenticated",
+    ),
 }
 
+
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
+    'SLIDING_TOKEN_REFRESH_LIFETIME': timedelta(days=1),
+    'SLIDING_TOKEN_LIFETIME': timedelta(days=30),
+    'SLIDING_TOKEN_REFRESH_LIFETIME_LATE_USER': timedelta(days=1),
+    'SLIDING_TOKEN_LIFETIME_LATE_USER': timedelta(days=30),
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/6.0/topics/i18n/

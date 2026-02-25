@@ -10,10 +10,14 @@ class PathBasedTenantMiddleware(TenantMainMiddleware):
     def get_tenant(self, model, hostname, request):
         from .utils import get_tenant_from_db
         path = unquote(urlparse(request.get_full_path()).path)
+        print(f"Extracted path: '{path}' from request URL: '{request.get_full_path()}'")
         if path :
             org_name = path.split('/')[1]
+            print(f"Extracted org_name: '{org_name}'")
             domain = hostname + '/' + org_name
+
             tenant = get_tenant_from_db(domain)
+            print(f"Tenant found for domain '{domain}': {tenant}")
             if tenant:
                 return tenant
             else:
