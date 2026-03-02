@@ -1,16 +1,29 @@
-import { Routes, Route, Navigate } from "react-router-dom"
-import TenantLogin from "./pages/tenant_login"
-import Login from "./pages/user_login"
-import Home from "./pages/home"
+import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { AuthProvider } from "./services/auth/AuthProvider"
+import ProtectedRoute from "./services/routes/ProtectedRoute"
 
-function App() {
+import OrgEntry from "./pages/OrgEntry"
+import Login from "./pages/Login"
+import Dashboard from "./pages/Dashboard"
+
+export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<TenantLogin />} />
-      <Route path=":tenant/login" element={<Login />} />
-      <Route path=":tenant/home" element={<Home />} />
-    </Routes>
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<OrgEntry />} />
+          <Route path="/:org/login" element={<Login />} />
+
+          <Route
+            path="/:org/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   )
 }
-
-export default App
