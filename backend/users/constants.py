@@ -39,3 +39,5 @@ class InviteConstants:
     DELETE_SELF_INVITE_ERROR = _("Deleting your own invitation is not allowed")
 
     TOS_REQUIRED = _("Please agree to Awaaz.De terms of service")
+
+    

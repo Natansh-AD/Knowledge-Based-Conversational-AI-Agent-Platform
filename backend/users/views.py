@@ -3,8 +3,8 @@ from django.shortcuts import render
 from .models import User
 from .serializer import UserSerializer
 from rest_framework.generics import ListAPIView
-from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from .models import Invitation
 from .serializer import InvitationSerializer, CompleteInviteSerializer
@@ -26,57 +26,56 @@ class UserListView(ListAPIView):
             raise Exception("Invalid tenant: 'public' schema is not accessible for user data.")
         return User.objects.all()
 
-@api_view(['GET'])
-def validate_invite(request, token):
-    try:
-        invite = Invitation.objects.get(token=token)
-    except Invitation.DoesNotExist:
-        return Response({"detail": "Invalid token"}, status=status.HTTP_400_BAD_REQUEST)
-
-    if not invite.is_valid():
-        return Response({"detail": "Invite expired or already accepted"}, status=status.HTTP_400_BAD_REQUEST)
-
-    serializer = InvitationSerializer(invite)
-    return Response(serializer.data)
-
 @api_view(['POST'])
-def complete_invite(request, token):
+@permission_classes([AllowAny])
+@authentication_classes([])  # Disable authentication for this view
+def handle_invite(request, tenant_slug='', token=None):
+    token = request.data.get("token")
 
-    serializer = CompleteInviteSerializer(data=request.data)
-    if not serializer.is_valid():
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    
-    serializer.is_valid(raise_exception=True)
-    token = serializer.validated_data['token']
-    username = serializer.validated_data['username']
-    password = serializer.validated_data['password']
-
+    if not token:
+        return Response({"detail": "Token is required"}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
         invite = Invitation.objects.get(token=token)
     except Invitation.DoesNotExist:
-        return Response({"detail": "Invalid invite"}, status=status.HTTP_404_NOT_FOUND)
+        return Response({"detail": "Invalid invite token"}, status=status.HTTP_400_BAD_REQUEST)
 
     if not invite.is_valid():
-        return Response({"detail": "Invite expired or used"}, status=status.HTTP_400_BAD_REQUEST)
+        return Response(
+            {"detail": "Invite expired or already accepted"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
+    # -----------------------
+    # CASE 1: Only token sent → Just validate
+    # -----------------------
+    if not request.data.get("username") or not request.data.get("password"):
+        serializer = InvitationSerializer(invite)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    # -----------------------
+    # CASE 2: Complete invite
+    # -----------------------
+    username = request.data.get("username")
+    password = request.data.get("password")
 
     if User.objects.filter(email=invite.email).exists():
-        return Response({"detail": "User already exists"}, status=status.HTTP_400_BAD_REQUEST)
-    
+        return Response(
+            {"detail": "User already exists"},
+            status=status.HTTP_400_BAD_REQUEST
+        )
+
     user = User.objects.create_user(
         username=username,
         email=invite.email,
         password=password,
         role=invite.role,
     )
-    user.save()
 
-
-    invite.accepted = True
-    invite.save()
-
+    invite.mark_accepted()
 
     refresh = RefreshToken.for_user(user)
+
     return Response({
         "access": str(refresh.access_token),
         "refresh": str(refresh),
