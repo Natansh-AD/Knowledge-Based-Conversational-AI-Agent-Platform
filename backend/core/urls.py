@@ -7,7 +7,7 @@ urlpatterns = [
     re_path(r'^(?P<tenant_slug>[\w-]+)/info/$', TenantDetailView.as_view(), name="tenant-info"),
 
     # Users list
-    re_path(r'^(?P<tenant_slug>[\w-]+)/users/$', UserListView.as_view(), name="users-list"),
+    re_path(r'^(?P<tenant_slug>[\w-]+)/users/', include('users.urls'), name="users-list"),
 
     # API routes
     re_path(r'^(?P<tenant_slug>[\w-]+)/api/', include('api.urls')),

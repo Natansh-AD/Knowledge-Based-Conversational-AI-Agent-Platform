@@ -8,6 +8,8 @@ from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
 
+from users.serializer import UserSerializer
+
 class CookieTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
         response = super().post(request, *args, **kwargs)
@@ -76,7 +78,6 @@ class LogoutView(APIView):
         return res
     
 class ApiRootView(APIView):
-    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request,tenant_slug=''):
@@ -89,8 +90,5 @@ class MeView(APIView):
 
     def get(self, request, tenant_slug=''):
         user = request.user
-
-        return Response({
-            "id": user.id,
-            "email": user.email,
-        })
+        serializer = UserSerializer(user)
+        return Response(serializer.data)
