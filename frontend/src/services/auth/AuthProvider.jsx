@@ -31,7 +31,7 @@ export function AuthProvider({ children }) {
     setLoading(true)
     setError(null)
     try {
-      const res = await api.get(`/${tenant}/api/me/`)
+      const res = await api.get(`/${tenant}/users/profile/`)
       setUser(res.data)
     } catch (err) {
       setUser(null)
@@ -127,6 +127,39 @@ export function AuthProvider({ children }) {
     }
   }
 
+  async function updateUser(userData) {
+    try {
+      const updatedUser = await api.patch(`/${tenant}/users/profile/`, userData)
+      setUser(updatedUser.data)
+    } catch (err) {
+      throw new Error(
+        err.response?.data?.detail || "Failed to update user details"
+      )
+    }
+  }
+
+
+  async function getInvitedUsers() {
+    try {
+      const res = await api.get(`/${tenant}/users/invites/`)
+      return res.data
+    } catch (err) {
+      throw new Error(
+        err.response?.data?.detail || "Failed to fetch invited users"
+      )
+    }
+  }
+
+  async function sendInvite(email){
+    try {
+      await api.post(`/${tenant}/users/invite/send/`, email)
+    } catch (err) {
+      throw new Error(
+        err.response?.data?.detail || "Failed to send invite"
+      )
+    }
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -138,6 +171,9 @@ export function AuthProvider({ children }) {
         refresh,
         validateInvite,
         acceptInvite,
+        updateUser,
+        getInvitedUsers,
+        sendInvite
       }}
     >
       {children}

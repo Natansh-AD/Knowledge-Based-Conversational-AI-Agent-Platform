@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { useAuth } from "../services/auth/useAuth"
-import "../index.css"
+import "../styles/index.css"
 
 export default function Login() {
   const { org } = useParams()
