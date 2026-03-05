@@ -24,18 +24,12 @@ class InvitationSerializer(serializers.ModelSerializer):
         model = Invitation
         fields = [
             "id",
-            "email",
-            "phone_number",
             "role",
-            "tenant",
-            "invited_by",
-            "created_at",
-            "expires_at",
+            "token"
+            "phone_number",
+            "email",
+            "invited_by_id",
+            "tenant_id",
+            "status",
         ]
 
-class CompleteInviteSerializer(serializers.Serializer):
-    email = serializers.EmailField()
-    first_name = serializers.CharField(max_length=30)
-    last_name = serializers.CharField(max_length=30)
-    password = serializers.CharField(write_only=True)
-    confirm_password = serializers.CharField(write_only=True)

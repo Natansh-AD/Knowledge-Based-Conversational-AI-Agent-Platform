@@ -1,6 +1,7 @@
 import { createContext, useEffect, useState } from "react"
 import { api } from "../../api/axios"
 import { getOrgFromPath } from "../../helpers/getTenant"
+import { useLocation } from "react-router-dom"
 
 export const AuthContext = createContext()
 
@@ -14,13 +15,15 @@ export function AuthProvider({ children }) {
   // -------------------------------
   // Initialize session on mount
   // -------------------------------
-  useEffect(() => {
-    const init = async () => {
-      await checkSession()
-    }
-    init()
-  }, [tenant])
 
+  const location = useLocation()
+  useEffect(() => {
+    if (!location.pathname.includes("/invite/")) {
+      checkSession()
+    } else {
+      setLoading(false)
+    }
+  }, [tenant])
   // -------------------------------
   // Check current session
   // -------------------------------
@@ -85,6 +88,45 @@ export function AuthProvider({ children }) {
     }
   }
 
+
+  // -------------------------------
+  // Validate Invite
+  // -------------------------------
+  async function validateInvite({org, token}) {
+    try {
+      const res = await api.post(`/${tenant}/users/invite/`, {
+        token,
+      })
+      return res.data
+    } catch (err) {
+      throw new Error(
+        err.response?.data?.detail || "Invalid or expired invite"
+      )
+    }
+  }
+
+  // -------------------------------
+  // Accept Invite
+  // -------------------------------
+  async function acceptInvite({ token, username, password }) {
+    try {
+      await api.post(`/${tenant}/users/invite/`, {
+        token,
+        username,
+        password,
+      })
+
+      // After successful invite completion,
+      // backend already sets cookies OR returns tokens.
+      // We now refresh session.
+      await checkSession()
+    } catch (err) {
+      throw new Error(
+        err.response?.data?.detail || "Failed to complete invite"
+      )
+    }
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -94,6 +136,8 @@ export function AuthProvider({ children }) {
         login,
         logout,
         refresh,
+        validateInvite,
+        acceptInvite,
       }}
     >
       {children}

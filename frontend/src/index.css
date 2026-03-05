@@ -83,6 +83,20 @@ button:hover {
   background: #000;
 }
 
+/* Profile Styles */
+.profile-info {
+  margin-top: 20px;
+}
+
+.profile-item {
+  margin-bottom: 12px;
+}
+
+.profile-item strong {
+  color: #333;
+  font-size: 14px;
+}
+
 /* Error */
 .error {
   margin-top: 12px;

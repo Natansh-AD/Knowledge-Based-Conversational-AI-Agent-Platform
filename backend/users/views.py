@@ -7,7 +7,7 @@ from rest_framework.decorators import api_view, permission_classes, authenticati
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
 from .models import Invitation
-from .serializer import InvitationSerializer, CompleteInviteSerializer
+from .serializer import InvitationSerializer
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from django_tenants.utils import tenant_context
