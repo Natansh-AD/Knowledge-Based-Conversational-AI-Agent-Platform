@@ -11,8 +11,9 @@ from .serializer import InvitationSerializer
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
 from django_tenants.utils import tenant_context
-from .services import create_invite
+from .services import create_invite, getAllInvites
 from .emails import send_invite_email
+from rest_framework.views import APIView
 
 
 
@@ -25,6 +26,23 @@ class UserListView(ListAPIView):
         if tenant.schema_name == 'public':
             raise Exception("Invalid tenant: 'public' schema is not accessible for user data.")
         return User.objects.all()
+    
+class HandleUser(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, tenant_slug=''):
+        user = request.user
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def patch(self, request, tenant_slug='', token=None):
+        user = request.user
+        print("Received data for update:", request.data)  # Debugging line
+        serializer = UserSerializer(user, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -85,7 +103,7 @@ def handle_invite(request, tenant_slug='', token=None):
 @permission_classes([IsAuthenticated])
 def invite_user(request, tenant_slug=''):
     email = request.data.get("email")
-    
+    print("Inviting user with email:", email)  # Debugging line
     if not email:
         return Response({"detail": "Email required"}, status=400)
 
@@ -103,3 +121,10 @@ def invite_user(request, tenant_slug=''):
     
 
     return Response({"detail": "Invite sent"})
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def getInvitedUsers(request, tenant_slug=''):
+    invites = getAllInvites(request.tenant).filter(invited_by_id=request.user.id)
+    serializer = InvitationSerializer(invites, many=True)
+    return Response(serializer.data, status=200)

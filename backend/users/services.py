@@ -10,3 +10,6 @@ def create_invite(email, tenant, invited_by):
         expires_at=timezone.now() + timedelta(days=2)
     )
     return invite
+
+def getAllInvites(tenant):
+    return Invitation.objects.filter(tenant=tenant)

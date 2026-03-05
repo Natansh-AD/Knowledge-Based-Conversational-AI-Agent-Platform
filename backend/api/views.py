@@ -7,17 +7,32 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework.permissions import IsAuthenticated
-
+from django.utils import timezone
 from users.serializer import UserSerializer
 
 class CookieTokenObtainPairView(TokenObtainPairView):
     def post(self, request, *args, **kwargs):
+        # Call the original view to get token data
         response = super().post(request, *args, **kwargs)
 
         if response.status_code == 200:
+            # Update last_login for the authenticated user
+            user = self.user if hasattr(self, 'user') else request.user
+
+            # In SimpleJWT, self.user may not exist, so extract from serializer
+            if hasattr(self, 'serializer_class'):
+                serializer = self.get_serializer(data=request.data)
+                serializer.is_valid(raise_exception=True)
+                user = serializer.user
+
+            user.last_login = timezone.now()
+            user.save(update_fields=['last_login'])
+
+            # Extract tokens
             access = response.data.get("access")
             refresh = response.data.get("refresh")
 
+            # Return response with cookies
             res = Response({"detail": "Login successful"})
 
             res.set_cookie(

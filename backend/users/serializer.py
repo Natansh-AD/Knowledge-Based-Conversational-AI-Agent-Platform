@@ -25,7 +25,7 @@ class InvitationSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "role",
-            "token"
+            "token",
             "phone_number",
             "email",
             "invited_by_id",
