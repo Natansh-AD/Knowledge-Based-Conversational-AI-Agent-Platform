@@ -6,6 +6,7 @@ from .views import (
     ApiRootView,
     MeView
 )
+from documents.views import get_upload_url, getAllDocuments, upload_document
 
 urlpatterns = [
     path("token/", CookieTokenObtainPairView.as_view()),
@@ -13,4 +14,8 @@ urlpatterns = [
     path("logout/", LogoutView.as_view()),
     path("", ApiRootView.as_view(), name="api-root"),
     path("me/", MeView.as_view(), name="me"),
+
+    # Document based paths
+    path("upload/", upload_document, name="upload-document"),
+    path("docs/",getAllDocuments,name="all-docs")
 ]

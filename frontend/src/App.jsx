@@ -6,6 +6,8 @@ import OrgEntry from "./pages/OrgEntry"
 import Login from "./pages/Login"
 import Dashboard from "./pages/Dashboard"
 import Invite from "./pages/Invite"
+import Documents from "./pages/Documents"
+import DocumentUploadModal from "./components/DocumentUploadModal"
 
 export default function App() {
   return (
@@ -20,6 +22,15 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <Dashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/:org/docs"
+            element={
+              <ProtectedRoute>
+                <Documents />
               </ProtectedRoute>
             }
           />

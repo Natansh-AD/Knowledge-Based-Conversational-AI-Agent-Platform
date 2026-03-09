@@ -160,6 +160,44 @@ export function AuthProvider({ children }) {
     }
   }
 
+  async function getDocs(filters = {}, page = 1, pageSize = 10) {
+    try {
+      const params = new URLSearchParams({
+        page,
+        page_size: pageSize,
+        ...filters,
+      });
+
+      const res = await api.get(`/${tenant}/api/docs/?${params.toString()}`);
+      return res.data;
+    } catch (err) {
+      throw new Error(err.response?.data?.detail || "Failed to fetch documents");
+    }
+  }
+
+  async function uploadDoc(file){
+    try{
+      const formData = new FormData()
+      formData.append("file",file)
+
+      const response = await api.post(
+        `/${tenant}/api/upload/`,
+        formData, 
+        { 
+          headers: 
+          { 
+            "Content-Type": "multipart/form-data" 
+          } 
+        }
+      )
+
+      return response.data
+
+    } catch(err){
+      throw new Error(err.response?.data?.detail || "File Upload Failed")
+    }
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -173,7 +211,9 @@ export function AuthProvider({ children }) {
         acceptInvite,
         updateUser,
         getInvitedUsers,
-        sendInvite
+        sendInvite,
+        getDocs,
+        uploadDoc
       }}
     >
       {children}

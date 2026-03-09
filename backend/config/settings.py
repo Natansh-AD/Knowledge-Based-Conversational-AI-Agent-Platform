@@ -44,12 +44,14 @@ TENANT_APPS = [
     'rest_framework_simplejwt',
     'users',  # your custom user model lives here
     'api',
+    'documents',
 ]
 
 INSTALLED_APPS = SHARED_APPS + TENANT_APPS + [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'corsheaders',
+    "django_celery_results",
 ]
 
 
@@ -95,7 +97,7 @@ DATABASES = {
         'NAME': 'db',
         'USER': 'user',
         'PASSWORD': 'password',
-        'HOST': 'localhost',
+        'HOST': 'db',
         'PORT': '5432',
     }
 }
@@ -172,6 +174,7 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# Email setup
 from decouple import config
 
 EMAIL_BACKEND = config("EMAIL_BACKEND")
@@ -181,3 +184,17 @@ EMAIL_USE_TLS = config("EMAIL_USE_TLS", cast=bool)
 EMAIL_HOST_USER = config("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = config("EMAIL_HOST_PASSWORD")
 DEFAULT_FROM_EMAIL = config("DEFAULT_FROM_EMAIL")
+
+
+# Celery configuration
+CELERY_BROKER_URL = 'redis://redis:6379/0'
+CELERY_RESULT_BACKEND = 'redis://redis:6379/0'
+CELERY_TASK_TRACK_STARTED = True
+CELERY_TASK_TIME_LIMIT = 30 * 60
+
+# AWS S3 Configuration
+AWS_ACCESS_KEY = config("AWS_ACCESS_KEY")
+AWS_SECRET_KEY = config("AWS_SECRET_KEY")
+AWS_S3_REGION = config("AWS_S3_REGION")
+AWS_STORAGE_BUCKET_NAME = config("AWS_STORAGE_BUCKET_NAME")
+S3_PRESIGNED_URL_EXPIRY = config("S3_PRESIGNED_URL_EXPIRY", cast=int, default=3600)

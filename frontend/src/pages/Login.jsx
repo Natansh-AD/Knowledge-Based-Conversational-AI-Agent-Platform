@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { useAuth } from "../services/auth/useAuth"
-import "../styles/index.css"
+import "../styles/login.css"
 
 export default function Login() {
   const { org } = useParams()
@@ -22,43 +22,27 @@ export default function Login() {
     }
   }
 
-  const inputStyle = {
-    padding: "10px 12px",
-    borderRadius: "6px",
-    border: "1px solid #d4d4d4",
-    fontSize: "14px",
-  }
-
-  const formStyle = { display: "flex", flexDirection: "column", gap: "14px" }
-  
-
   return (
-    <div className="container">
+    <div className="login-page">
       <div className="card">
         <h2 className="page-title">Login to {org}</h2>
 
-        <form onSubmit={handleSubmit} style={formStyle}>
-          <div className="input-group">
-            <input
-              type="text"
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
-              style={inputStyle}
-            />
-          </div>
+        <form className="login-form" onSubmit={handleSubmit}>
+          <input
+            type="text"
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
 
-          <div className="input-group">
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              style={inputStyle}
-            />
-          </div>
+          <input
+            type="password"
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
 
           <button type="submit">Login</button>
 

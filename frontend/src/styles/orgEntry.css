@@ -1,44 +1,39 @@
-/* Reset */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+/* Scope everything under org-entry-page */
+.org-entry-page {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #ffffff;
 }
 
-body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  background-color: #ffffff;
-  color: #111111;
-  min-height: 100vh;
+.org-entry-page .container {
+  width: 100%;
+  max-width: 420px;
+  padding: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* Center container */
-.container {
-  width: 100%;
-  max-width: 420px;
-  padding: 20px;
-}
-
-/* Card */
-.card {
+.org-entry-page .card {
   border: 1px solid #e5e5e5;
   padding: 32px;
   border-radius: 8px;
   background: #ffffff;
+  width: 100%;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 
 /* Headings */
-.card h2 {
+.org-entry-page .card h2 {
   font-size: 20px;
   font-weight: 500;
   margin-bottom: 24px;
 }
 
 /* URL style input row */
-.url-input {
+.org-entry-page .url-input {
   display: flex;
   align-items: center;
   border: 1px solid #d4d4d4;
@@ -46,7 +41,7 @@ body {
   overflow: hidden;
 }
 
-.url-prefix {
+.org-entry-page .url-prefix {
   background: #f5f5f5;
   padding: 10px 12px;
   font-size: 14px;
@@ -54,23 +49,22 @@ body {
   border-right: 1px solid #d4d4d4;
 }
 
-.url-input input {
+.org-entry-page .url-input input {
   flex: 1;
   padding: 10px 12px;
   border: none;
   font-size: 14px;
 }
 
-.url-input input:focus {
+.org-entry-page .url-input input:focus {
   outline: none;
 }
 
-
 /* Button */
-button {
+.org-entry-page button {
   margin-top: 20px;
   width: 100%;
-  padding: 10px;
+  padding: 12px;
   border-radius: 6px;
   border: 1px solid #111;
   background: #111;
@@ -79,26 +73,12 @@ button {
   cursor: pointer;
 }
 
-button:hover {
+.org-entry-page button:hover {
   background: #000;
 }
 
-/* Profile Styles */
-.profile-info {
-  margin-top: 20px;
-}
-
-.profile-item {
-  margin-bottom: 12px;
-}
-
-.profile-item strong {
-  color: #333;
-  font-size: 14px;
-}
-
 /* Error */
-.error {
+.org-entry-page .error {
   margin-top: 12px;
   font-size: 13px;
   color: #b00020;
