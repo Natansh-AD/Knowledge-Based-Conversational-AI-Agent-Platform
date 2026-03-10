@@ -11,6 +11,8 @@ from .serializer import DocumentSerializer
 from rest_framework import status
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from datetime import datetime, timedelta
+from .tasks import process_document 
+from django.db import connection 
 
 # s3 views
 @api_view(["POST"])
@@ -147,6 +149,7 @@ def upload_document(request,tenant_slug=None):
         uploaded_by=request.user,
         status="uploaded"
     )
+    process_document.delay(document.id, request.tenant.schema_name)
 
     return Response({
         "message": "File uploaded successfully",

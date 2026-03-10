@@ -1,6 +1,7 @@
 import boto3
 from django.conf import settings
 from botocore.exceptions import ClientError
+import os
 
 class S3Client:
 
@@ -46,3 +47,14 @@ class S3Client:
             )
         except ClientError as e:
             raise Exception(f"Could not generate upload URL due to error: {str(e)}")
+
+    def download_file(self, key, filename):
+        local_path = os.path.join(settings.MEDIA_PATH, filename)
+
+        self.client.download_file(
+            Bucket=self.bucket,
+            Key=key,
+            Filename=local_path
+        )
+
+        return local_path

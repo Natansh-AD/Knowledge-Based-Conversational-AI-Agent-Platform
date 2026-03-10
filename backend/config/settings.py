@@ -198,3 +198,6 @@ AWS_SECRET_KEY = config("AWS_SECRET_KEY")
 AWS_S3_REGION = config("AWS_S3_REGION")
 AWS_STORAGE_BUCKET_NAME = config("AWS_STORAGE_BUCKET_NAME")
 S3_PRESIGNED_URL_EXPIRY = config("S3_PRESIGNED_URL_EXPIRY", cast=int, default=3600)
+
+# Media path for documents
+MEDIA_PATH = '/tmp'

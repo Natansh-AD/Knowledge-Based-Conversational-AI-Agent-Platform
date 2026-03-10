@@ -15,3 +15,19 @@ class Document(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE)
     last_modified_at = models.DateTimeField(auto_now=True)
+
+class DocumentChunk(models.Model):
+    document = models.ForeignKey(
+        Document,
+        on_delete=models.CASCADE,
+        related_name="chunks"
+    )
+    chunk_index = models.IntegerField()
+    text = models.TextField()
+    embedding = models.JSONField(null=True, blank=True)
+    meta_data = models.JSONField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["chunk_index"]
+        unique_together = ["document", "chunk_index"]
