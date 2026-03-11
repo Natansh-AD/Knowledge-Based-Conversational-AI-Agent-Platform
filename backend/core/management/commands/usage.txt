@@ -1,0 +1,4 @@
+python manage.py create_custom_tenant test "Test Tenant" localhost/test \
+    --website="http://localhost/test" \
+    --billing_email="billing@testtenant.com" \
+    --billing_phone="+91-9999999999"

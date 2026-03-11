@@ -1,0 +1,1 @@
+python manage.py create_tenant_user test natansh natansh --email natansh@test.com

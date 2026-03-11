@@ -42,6 +42,7 @@ TENANT_APPS = [
     "django.contrib.admin",
     'rest_framework',
     'rest_framework_simplejwt',
+    'pgvector',
     'users',  # your custom user model lives here
     'api',
     'documents',

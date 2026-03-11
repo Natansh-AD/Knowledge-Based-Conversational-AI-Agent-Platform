@@ -1,5 +1,7 @@
 from django.db import models
 from users.models import User
+from pgvector.django import VectorField 
+
 # Create your models here.
 class Document(models.Model):
     name = models.CharField(max_length=255)
@@ -24,7 +26,11 @@ class DocumentChunk(models.Model):
     )
     chunk_index = models.IntegerField()
     text = models.TextField()
-    embedding = models.JSONField(null=True, blank=True)
+    embedding = VectorField(
+        # using all-MiniLM-L6-v2
+        dimensions=384,
+        null=True
+    )
     meta_data = models.JSONField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
