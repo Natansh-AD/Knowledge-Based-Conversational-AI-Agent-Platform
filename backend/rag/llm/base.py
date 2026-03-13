@@ -1,0 +1,26 @@
+# rag.llm.base.py
+from abc import ABC, abstractmethod
+import google.generativeai as genai
+from django.conf import settings
+
+
+class BaseLLMProvider(ABC):
+
+    @abstractmethod
+    def generate(self, system_prompt, user_prompt):
+        pass
+
+
+class GeminiProvider(BaseLLMProvider):
+
+    def __init__(self):
+        genai.configure(api_key=settings.GEMINI_API_KEY)
+        self.model = genai.GenerativeModel("gemini-2.5-flash")
+
+    def generate(self, system_prompt, user_prompt):
+
+        prompt = f"{system_prompt}\n\n{user_prompt}"
+
+        response = self.model.generate_content(prompt)
+
+        return response.text

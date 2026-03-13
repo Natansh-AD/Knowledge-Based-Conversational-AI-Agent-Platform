@@ -208,3 +208,6 @@ S3_PRESIGNED_URL_EXPIRY = config("S3_PRESIGNED_URL_EXPIRY", cast=int, default=36
 
 # Media path for documents
 MEDIA_PATH = '/tmp'
+
+# GEMINI Configuration
+GEMINI_API_KEY = config("GEMINI_API_KEY")

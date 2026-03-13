@@ -1,6 +1,6 @@
+# rag.processors.chunker.py
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from documents.models import DocumentChunk
-
 
 
 def chunk_text(text):
@@ -13,6 +13,7 @@ def chunk_text(text):
     return chunks
 
 def save_chunks(document, chunks):
+    DocumentChunk.objects.filter(document=document).delete()
 
     chunk_objects = []
     for index, chunk in enumerate(chunks):
@@ -28,3 +29,12 @@ def save_chunks(document, chunks):
         )
 
     DocumentChunk.objects.bulk_create(chunk_objects)
+
+def build_context(chunks, max_chars=6000):
+    context = ""
+    for chunk in chunks:
+        if len(context) + len(chunk.text) > max_chars:
+            break
+        context += chunk.text + "\n\n"
+
+    return context

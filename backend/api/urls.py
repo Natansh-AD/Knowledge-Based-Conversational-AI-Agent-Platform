@@ -7,6 +7,7 @@ from .views import (
     MeView
 )
 from documents.views import get_upload_url, getAllDocuments, upload_document
+from django.urls import include
 
 urlpatterns = [
     path("token/", CookieTokenObtainPairView.as_view()),
@@ -17,5 +18,8 @@ urlpatterns = [
 
     # Document based paths
     path("upload/", upload_document, name="upload-document"),
-    path("docs/",getAllDocuments,name="all-docs")
+    path("docs/",getAllDocuments,name="all-docs"),
+
+    # Agent based paths
+    path('agent/', include('agent.urls'))
 ]

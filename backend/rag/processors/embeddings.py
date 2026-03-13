@@ -1,3 +1,4 @@
+# rag.processors.embeddings.py
 from sentence_transformers import SentenceTransformer
 from documents.models import DocumentChunk
 model = SentenceTransformer("all-MiniLM-L6-v2")
@@ -6,7 +7,7 @@ def generate_embeddings(texts):
 
     embeddings = model.encode(texts)
 
-    return embeddings
+    return embeddings.tolist()
 
 def embed_document_chunks(document=None):
     chunks = DocumentChunk.objects.filter(
@@ -18,7 +19,7 @@ def embed_document_chunks(document=None):
     embeddings = generate_embeddings(texts)
 
     for chunk, emb in zip(chunks, embeddings):
-        chunk.embedding = emb.tolist()
+        chunk.embedding = emb
     DocumentChunk.objects.bulk_update(
         chunks,
         ["embedding"]
