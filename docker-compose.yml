@@ -12,56 +12,26 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - app-network  # Add this line to connect db to the app-network
+      - app-network
 
   pgadmin:
     image: dpage/pgadmin4
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@example.com  # Set your admin email
-      PGADMIN_DEFAULT_PASSWORD: admin_password  # Set your admin password
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin_password
     ports:
-      - "8080:80"  # Exposes pgAdmin on localhost:8080
+      - "8080:80"
     volumes:
       - pgadmin_data:/var/lib/pgadmin
     networks:
-      - app-network  # Ensure pgAdmin is on the same network as db
+      - app-network
 
   redis:
-    image: redis:7
+    image: redis:7-alpine
     container_name: redis
     restart: always
     ports:
       - "6379:6379"
-    networks:
-      - app-network
-
-  backend:
-    build: .
-    container_name: django_backend
-    command: python manage.py runserver 0.0.0.0:8000
-    env_file:
-      - .env
-    volumes:
-      - ./backend:/app
-    ports:
-      - "8000:8000"
-    depends_on:
-      - db
-      - redis
-    networks:
-      - app-network
-
-  celery:
-    build: .
-    container_name: celery_worker
-    env_file:
-      - .env
-    command: celery -A config.celery worker -l info
-    volumes:
-      - ./backend:/app
-    depends_on:
-      - redis
-      - db
     networks:
       - app-network
 
@@ -71,4 +41,4 @@ volumes:
 
 networks:
   app-network:
-    driver: bridge  # Ensure all containers are on the same network
+    driver: bridge
