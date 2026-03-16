@@ -198,6 +198,66 @@ export function AuthProvider({ children }) {
     }
   }
 
+  async function getAgents(filters = {}, page = 1, pageSize = 10) {
+    try {
+      const params = new URLSearchParams({
+        page,
+        page_size: pageSize,
+        ...filters,
+      });
+
+      const res = await api.get(`/${tenant}/api/agent/?${params.toString()}`);
+
+      return res.data;
+    } catch (err) {
+      throw new Error(err.response?.data?.detail || "Failed to fetch agents");
+    }
+  }
+
+  async function getTags() {
+    try {
+      const res = await api.get(`/${tenant}/api/agent/tags/`);
+      return res.data;
+    } catch (err) {
+      throw new Error(err.response?.data?.detail || "Failed to fetch tags");
+    }
+  }
+
+  async function createTag(data) {
+    try {
+      const res = await api.post(`/${tenant}/api/agent/tags/`, data);
+      return res.data; // {id, name}
+    } catch (err) {
+      throw new Error(err.response?.data?.detail || "Failed to create tag");
+    }
+  }
+  async function createAgent(data) {
+    try {
+      const res = await api.post(`/${tenant}/api/agent/`, data);
+      return res.data;
+    } catch (err) {
+      throw new Error(err.response?.data?.detail || "Failed to create agent");
+    }
+  }
+
+  async function updateAgent(agentId, data) {
+    try {
+      const res = await api.patch(`/${tenant}/api/agent/${agentId}/`, data);
+      return res.data;
+    } catch (err) {
+      throw new Error(err.response?.data?.detail || "Failed to update agent");
+    }
+  }
+
+  async function deleteAgent(agentId) {
+    try {
+      await api.delete(`/${tenant}/api/agent/${agentId}/`);
+      return true;
+    } catch (err) {
+      throw new Error(err.response?.data?.detail || "Failed to delete agent");
+    }
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -213,7 +273,13 @@ export function AuthProvider({ children }) {
         getInvitedUsers,
         sendInvite,
         getDocs,
-        uploadDoc
+        uploadDoc,
+        getAgents,
+        getTags,
+        createTag,
+        createAgent,
+        updateAgent,
+        deleteAgent
       }}
     >
       {children}

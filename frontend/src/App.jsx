@@ -7,6 +7,7 @@ import Login from "./pages/Login"
 import Dashboard from "./pages/Dashboard"
 import Invite from "./pages/Invite"
 import Documents from "./pages/Documents"
+import AgentsPage from "./pages/Agents"
 import DocumentUploadModal from "./components/DocumentUploadModal"
 
 export default function App() {
@@ -34,7 +35,17 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+
+        <Route
+            path="/:org/agents"
+            element={
+              <ProtectedRoute>
+                <AgentsPage />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
+
       </AuthProvider>
     </BrowserRouter>
   )

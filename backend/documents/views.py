@@ -61,6 +61,10 @@ def getAllDocuments(request, tenant_slug=None):
     start_date = request.GET.get("start_date")
     end_date = request.GET.get("end_date")
 
+    # Initialize date variables
+    start_dt = None
+    end_dt = None
+
     # Search filter
     if search:
         documents = documents.filter(name__icontains=search)
@@ -71,7 +75,7 @@ def getAllDocuments(request, tenant_slug=None):
             uploaded_by = int(uploaded_by)
             documents = documents.filter(uploaded_by__id=uploaded_by)
         except ValueError:
-            pass  # Ignore if not a valid integer, no filter applied
+            pass
 
     # File type filter
     if file_type:
@@ -81,18 +85,19 @@ def getAllDocuments(request, tenant_slug=None):
     if status_filter:
         documents = documents.filter(status=status_filter)
 
-    # Date filters (convert to datetime and extend the end date)
+    # Date filters
     if start_date:
         try:
             start_dt = datetime.strptime(start_date, "%Y-%m-%d")
         except ValueError:
-            start_dt = None  # Invalid date format, no filter applied
+            start_dt = None
     if end_date:
         try:
             end_dt = datetime.strptime(end_date, "%Y-%m-%d") + timedelta(days=1) - timedelta(seconds=1)
         except ValueError:
-            end_dt = None  # Invalid date format, no filter applied
+            end_dt = None
 
+    # Apply date filters safely
     if start_dt and end_dt:
         documents = documents.filter(created_at__range=[start_dt, end_dt])
     elif start_dt:
@@ -112,9 +117,9 @@ def getAllDocuments(request, tenant_slug=None):
     try:
         docs_page = paginator.page(page)
     except PageNotAnInteger:
-        docs_page = paginator.page(1)  # default to first page if invalid page number
+        docs_page = paginator.page(1)
     except EmptyPage:
-        docs_page = paginator.page(paginator.num_pages)  # default to last page if empty
+        docs_page = paginator.page(paginator.num_pages)
 
     # Serialize data
     serializer = DocumentSerializer(docs_page, many=True)
