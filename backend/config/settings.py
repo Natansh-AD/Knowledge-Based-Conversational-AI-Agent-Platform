@@ -46,7 +46,8 @@ TENANT_APPS = [
     'users',  # your custom user model lives here
     'api',
     'documents',
-    'agent'
+    'agent',
+    'chat'
 ]
 
 INSTALLED_APPS = SHARED_APPS + TENANT_APPS + [

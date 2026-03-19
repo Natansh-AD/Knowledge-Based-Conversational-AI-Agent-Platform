@@ -3,10 +3,12 @@ import { useAuth } from "../services/auth/useAuth";
 import CreateAgentModal from "../components/CreateAgentModal";
 import EditAgentModal from "../components/EditAgentModal";
 import "../styles/DocumentsPage.css";
+import { useNavigate, useParams } from "react-router-dom";
 
 const AgentsPage = () => {
   const { getAgents, getTags, updateAgentStatus, deleteAgent } = useAuth();
-
+  const navigate = useNavigate();
+  const {org} = useParams();
   const [agents, setAgents] = useState([]);
   const [tags, setTags] = useState([]);
 
@@ -46,6 +48,16 @@ const AgentsPage = () => {
     try {
       const data = await getTags();
       setTags(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleStartChat = async (agentId) => {
+    if (!org || !agentId) return;
+
+    try {
+      navigate(`/${org}/agents/${agentId}`);
     } catch (err) {
       console.error(err);
     }
@@ -240,6 +252,13 @@ const AgentsPage = () => {
                     onClick={() => handleDelete(agent.id)}
                   >
                     Delete
+                  </button>
+
+                  <button
+                    className="action-btn"
+                    onClick={() => handleStartChat(agent.id)}
+                  >
+                    Chat
                   </button>
                 </td>
               </tr>

@@ -258,6 +258,50 @@ export function AuthProvider({ children }) {
     }
   }
 
+  // Create Chat
+  async function createChat(agentId) {
+    try {
+      const res = await api.post(`/${tenant}/api/chat/create/`, {
+        agent_id: agentId,
+      });
+      return res.data;
+    } catch (err) {
+      throw new Error(err.response?.data?.detail || "Failed to create chat");
+    }
+  }
+
+  // List Chats
+  async function getChats(agentId) {
+    try {
+      const res = await api.get(`/${tenant}/api/chat/list/?agent_id=${agentId}`);
+      return res.data;
+    } catch (err) {
+      throw new Error(err.response?.data?.detail || "Failed to fetch chats");
+    }
+  }
+
+  // Get Messages
+  async function getMessages(chatId) {
+    try {
+      const res = await api.get(`/${tenant}/api/chat/${chatId}/messages/`);
+      return res.data;
+    } catch (err) {
+      throw new Error(err.response?.data?.detail || "Failed to fetch messages");
+    }
+  }
+
+  // Send Message
+  async function sendMessage(chatId, message) {
+    try {
+      const res = await api.post(`/${tenant}/api/chat/${chatId}/message/`, {
+        message: message,
+      });
+      return res.data;
+    } catch (err) {
+      throw new Error(err.response?.data?.detail || "Failed to send message");
+    }
+  }
+
   return (
     <AuthContext.Provider
       value={{
@@ -279,7 +323,11 @@ export function AuthProvider({ children }) {
         createTag,
         createAgent,
         updateAgent,
-        deleteAgent
+        deleteAgent,
+        createChat,
+        getChats,
+        getMessages,
+        sendMessage
       }}
     >
       {children}

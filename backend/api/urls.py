@@ -21,5 +21,8 @@ urlpatterns = [
     path("docs/",getAllDocuments,name="all-docs"),
 
     # Agent based paths
-    path('agent/', include('agent.urls'))
+    path('agent/', include('agent.urls')),
+
+    # Chat based urls
+    path('chat/', include('chat.urls'))
 ]

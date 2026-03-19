@@ -17,10 +17,20 @@ class GeminiProvider(BaseLLMProvider):
         genai.configure(api_key=settings.GEMINI_API_KEY)
         self.model = genai.GenerativeModel("gemini-2.5-flash")
 
-    def generate(self, system_prompt, user_prompt):
+    def generate(self, system_prompt, history, question):
 
-        prompt = f"{system_prompt}\n\n{user_prompt}"
+        chat = self.model.start_chat(
+            history=[
+                {
+                    "role": msg["role"],
+                    "parts": [msg["content"]]
+                }
+                for msg in history
+            ]
+        )
 
-        response = self.model.generate_content(prompt)
+        response = chat.send_message(
+            f"{system_prompt}\n\n{question}"
+        )
 
         return response.text

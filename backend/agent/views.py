@@ -10,33 +10,16 @@ from rest_framework import status
 from rest_framework.views import APIView
 from django.core.paginator import Paginator
 from django.shortcuts import get_object_or_404
+from .services.agent_service import generate_agent_answer
 
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def ask_agent(request, agent_id, tenant_slug=''):
     question = request.data.get("question")
-    agent = Agent.objects.get(id=agent_id)
-    chunks = retrieve_chunks(question, agent)
-
-    context = build_context(chunks)
-    print(len(context))
-
-    provider = GeminiProvider()
-
-    prompt = f"""
-        Context:
-        {context}
-
-        Question:
-        {question}
-        """
-
-    answer = provider.generate(
-        system_prompt=agent.system_prompt,
-        user_prompt=prompt
-    )
-
-    return Response({"answer" : answer})
+    answer = generate_agent_answer(agent_id,question=question)
+    return Response({
+        "answer" : answer
+    })
 
 
 class AgentView(APIView):

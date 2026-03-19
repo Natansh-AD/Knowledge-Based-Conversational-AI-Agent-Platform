@@ -9,6 +9,7 @@ import Invite from "./pages/Invite"
 import Documents from "./pages/Documents"
 import AgentsPage from "./pages/Agents"
 import DocumentUploadModal from "./components/DocumentUploadModal"
+import ChatPage from "./pages/ChatPage"
 
 export default function App() {
   return (
@@ -44,6 +45,16 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+
+        <Route 
+            path="/:org/agents/:agentId/:chatId?" 
+            element={
+              <ProtectedRoute>
+                <ChatPage />
+              </ProtectedRoute>
+            }  
+          />
+
         </Routes>
 
       </AuthProvider>
