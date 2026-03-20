@@ -12,37 +12,44 @@ export default function ProfileHeader({ user }) {
     "2" : "Member"
   }
 
-  
-
   return (
     <>
-      <div className="profile-header">
+      <div className="flex justify-between items-center bg-white p-8 rounded-lg mb-8 w-full">
 
-        <div className="profile-left">
+        <div className="flex items-center gap-5">
 
-          <div className="avatar">
+          <div className="w-[70px] h-[70px] rounded-full bg-gray-200 flex items-center justify-center text-2xl">
             {user?.username?.charAt(0).toUpperCase()}
           </div>
 
           <div>
-            <h2>{user?.username}</h2>
-            <p>{user?.email}</p>
-            <span className="role">{userRole[user?.role] || user?.role}</span>
+            <h2 className="text-lg font-semibold">{user?.username}</h2>
+            <p className="text-gray-600">{user?.email}</p>
+            <span className="text-xs bg-gray-200 px-3 py-1 rounded-full mt-2 inline-block">
+              {userRole[user?.role] || user?.role}
+            </span>
           </div>
 
         </div>
 
-        <div>
+        <div className="flex gap-2">
 
-          <button onClick={() => setShowEdit(true)}>
+          <button
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+            onClick={() => setShowEdit(true)}
+          >
             Edit Profile
           </button>
 
-          { user?.role === 1 &&
-            <button onClick={() => setShowInvite(true)}>
-            Invite User
-          </button>
-      }
+          {user?.role === 1 && (
+            <button
+              className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition"
+              onClick={() => setShowInvite(true)}
+            >
+              Invite User
+            </button>
+          )}
+
         </div>
 
       </div>
@@ -59,7 +66,6 @@ export default function ProfileHeader({ user }) {
           close={() => setShowInvite(false)}
         />
       )}
-
     </>
   )
 }

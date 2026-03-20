@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../services/auth/useAuth";
 import DocumentUploadModal from "../components/DocumentUploadModal"; 
-import "../styles/DocumentsPage.css";
 
-const DocumentsPage = () => {
+export default function DocumentsPage() {
   const { getDocs } = useAuth();
 
-  // Today's date string for default range
-  const todayDateStr = new Date().toISOString().split("T")[0]; // 'YYYY-MM-DD'
+  const todayDateStr = new Date().toISOString().split("T")[0];
 
   const [documents, setDocuments] = useState([]);
   const [filters, setFilters] = useState({
@@ -26,7 +24,6 @@ const DocumentsPage = () => {
   });
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
-  // Fetch documents
   const fetchDocuments = async () => {
     const data = await getDocs(filters, pagination.page, pagination.page_size);
     setDocuments(data.results);
@@ -41,97 +38,119 @@ const DocumentsPage = () => {
     fetchDocuments();
   }, [filters, pagination.page, pagination.page_size]);
 
-  // Filter changes
   const handleFilterChange = (e) => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
     setPagination({ ...pagination, page: 1 });
   };
 
-  // Pagination
   const handlePageChange = (newPage) => {
     setPagination({ ...pagination, page: newPage });
   };
 
-  // Upload modal
   const openUploadModal = () => setIsUploadModalOpen(true);
   const closeUploadModal = () => setIsUploadModalOpen(false);
 
   return (
-    <div className="docs-container">
-      {/* Header with title + upload button */}
-      <div className="header-row">
-        <h2>Documents</h2>
-        <button className="upload-button" onClick={openUploadModal}>
+    <div className="p-4 md:p-6 bg-gray-50 min-h-screen">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 space-y-3 md:space-y-0">
+        <h2 className="text-2xl font-semibold text-gray-900">Documents</h2>
+        <button
+          onClick={openUploadModal}
+          className="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors"
+        >
           Add New
         </button>
       </div>
 
       {/* Filters */}
-      <div className="filters">
-        <div className="filter-item">
-          <label htmlFor="search">Search by Name</label>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {/* Search */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Search by Name
+          </label>
           <input
-            id="search"
             type="text"
             name="search"
-            placeholder="Enter document name"
             value={filters.search}
             onChange={handleFilterChange}
+            placeholder="Enter document name"
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm"
           />
         </div>
 
-        <div className="filter-item date-range-filter">
-          <label>Created Date Range</label>
-          <div className="date-range-inputs">
+        {/* Date Range */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Created Date Range
+          </label>
+          <div className="flex items-center space-x-2">
             <input
               type="date"
               name="start_date"
               value={filters.start_date}
               onChange={handleFilterChange}
               max={filters.end_date}
+              className="px-2 py-1 border rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm"
             />
-            <span className="date-range-separator">to</span>
+            <span className="text-gray-500 text-sm">to</span>
             <input
               type="date"
               name="end_date"
               value={filters.end_date}
               onChange={handleFilterChange}
               min={filters.start_date}
+              className="px-2 py-1 border rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm"
             />
           </div>
         </div>
 
-        <div className="filter-item">
-          <label htmlFor="uploaded_by">Uploaded By (User ID)</label>
+        {/* Uploaded By */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Uploaded By (User ID)
+          </label>
           <input
-            id="uploaded_by"
             type="text"
             name="uploaded_by"
-            placeholder="Uploader ID"
             value={filters.uploaded_by}
             onChange={handleFilterChange}
+            placeholder="Uploader ID"
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm"
           />
         </div>
 
-        <div className="filter-item">
-          <label htmlFor="file_type">File Type</label>
-          <input
-            id="file_type"
-            type="text"
+        {/* File Type Dropdown */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            File Type
+          </label>
+          <select
             name="file_type"
-            placeholder="pdf, docx, png..."
             value={filters.file_type}
             onChange={handleFilterChange}
-          />
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm"
+          >
+            <option value="">All</option>
+            <option value="application/pdf">PDF</option>
+            <option value="docx">DOCX</option>
+            <option value="txt">TXT</option>
+            <option value="text/csv">CSV</option>  
+            {/* add more as needed */}
+          </select>
         </div>
 
-        <div className="filter-item">
-          <label htmlFor="status">Status</label>
+        {/* Status Dropdown */}
+        <div className="sm:col-span-1 lg:col-span-1">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Status
+          </label>
           <select
-            id="status"
             name="status"
             value={filters.status}
             onChange={handleFilterChange}
+            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm"
           >
             <option value="">All</option>
             <option value="uploaded">Uploaded</option>
@@ -142,59 +161,66 @@ const DocumentsPage = () => {
         </div>
       </div>
 
-      {/* Documents table */}
-      <table className="docs-table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>File Type</th>
-            <th>Status</th>
-            <th>Version</th>
-            <th>Created At</th>
-            <th>Uploaded By</th>
-            <th>Last Modified</th>
-          </tr>
-        </thead>
-        <tbody>
-          {documents.length === 0 ? (
+      {/* Documents Table */}
+      <div className="overflow-x-auto bg-white rounded-lg shadow-md max-h-[600px]">
+        <table className="min-w-full divide-y divide-gray-200 table-auto">
+          <thead className="bg-gray-100 sticky top-0 z-10">
             <tr>
-              <td colSpan="7" style={{ textAlign: "center", padding: "20px" }}>
-                No documents found.
-              </td>
+              {["Name", "File Type", "Status", "Version", "Created At", "Uploaded By", "Last Modified"].map(
+                (col) => (
+                  <th
+                    key={col}
+                    className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
+                  >
+                    {col}
+                  </th>
+                )
+              )}
             </tr>
-          ) : (
-            documents.map((doc) => (
-              <tr key={doc.id}>
-                <td>{doc.name}</td>
-                <td>{doc.file_type}</td>
-                <td>{doc.status}</td>
-                <td>{doc.version}</td>
-                <td>{new Date(doc.created_at).toLocaleString()}</td>
-                <td>{doc.uploaded_by}</td>
-                <td>{new Date(doc.last_modified_at).toLocaleString()}</td>
+          </thead>
+          <tbody className="divide-y divide-gray-200">
+            {documents.length === 0 ? (
+              <tr>
+                <td colSpan="7" className="text-center py-6 text-gray-500">
+                  No documents found.
+                </td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            ) : (
+              documents.map((doc) => (
+                <tr key={doc.id}>
+                  <td className="px-4 py-2 whitespace-nowrap">{doc.name}</td>
+                  <td className="px-4 py-2 whitespace-nowrap">{doc.file_type}</td>
+                  <td className="px-4 py-2 whitespace-nowrap capitalize">{doc.status}</td>
+                  <td className="px-4 py-2 whitespace-nowrap">{doc.version}</td>
+                  <td className="px-4 py-2 whitespace-nowrap">{new Date(doc.created_at).toLocaleString()}</td>
+                  <td className="px-4 py-2 whitespace-nowrap">{doc.uploaded_by}</td>
+                  <td className="px-4 py-2 whitespace-nowrap">{new Date(doc.last_modified_at).toLocaleString()}</td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
 
       {/* Pagination */}
-      <div className="pagination">
+      <div className="flex justify-center mt-4 flex-wrap gap-2">
         {Array.from({ length: pagination.num_pages }, (_, i) => (
           <button
             key={i + 1}
-            className={pagination.current_page === i + 1 ? "active" : ""}
             onClick={() => handlePageChange(i + 1)}
+            className={`px-3 py-1 rounded-md border ${
+              pagination.current_page === i + 1
+                ? "bg-gray-900 text-white"
+                : "bg-white text-gray-700 hover:bg-gray-100"
+            }`}
           >
             {i + 1}
           </button>
         ))}
       </div>
 
-      {/* Upload modal */}
+      {/* Upload Modal */}
       {isUploadModalOpen && <DocumentUploadModal onClose={closeUploadModal} />}
     </div>
   );
-};
-
-export default DocumentsPage;
+}

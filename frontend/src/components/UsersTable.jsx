@@ -7,14 +7,9 @@ export default function UsersTable() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const roleMap = {
-    1: "Admin",
-    2: "Member",
-  };
+  const roleMap = { 1: "Admin", 2: "Member" };
 
-  useEffect(() => {
-    loadUsers();
-  }, []);
+  useEffect(() => { loadUsers() }, []);
 
   const loadUsers = async () => {
     try {
@@ -28,65 +23,52 @@ export default function UsersTable() {
     }
   };
 
-  return (
-    <div className="section">
+  const statusClass = (status) => {
+    return status === "accepted"
+      ? "px-2 py-1 rounded text-green-800 bg-green-100 font-medium"
+      : "px-2 py-1 rounded text-yellow-800 bg-yellow-100 font-medium"
+  }
 
-      <h3>Users Invited By You</h3>
+  return (
+    <div className="bg-white p-8 rounded-lg mb-8 w-full">
+
+      <h3 className="text-lg font-semibold mb-4">Users Invited By You</h3>
 
       {loading && <p>Loading users...</p>}
-
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && <p className="text-red-600">{error}</p>}
 
       {!loading && !error && (
-        <table>
-
-          <thead>
-            <tr>
-              <th>Email</th>
-              <th>Role</th>
-              <th>Status</th>
-            </tr>
-          </thead>
-
-          <tbody>
-
-            {users.length === 0 ? (
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse">
+            <thead>
               <tr>
-                <td colSpan="4">No invited users found</td>
+                <th className="text-left p-3 border-b border-gray-200">Email</th>
+                <th className="text-left p-3 border-b border-gray-200">Role</th>
+                <th className="text-left p-3 border-b border-gray-200">Status</th>
               </tr>
-            ) : (
-              users.map(user => (
-                <tr key={user.id}>
-                  <td>{user.email}</td>
-                  <td>{roleMap[user.role] || user.role}</td>
-                  <td>
-                    <span
-                      style={{
-                        padding: "4px 8px",
-                        borderRadius: "6px",
-                        background:
-                          user.status === "accepted"
-                            ? "#d4edda"
-                            : "#fff3cd",
-                        color:
-                          user.status === "accepted"
-                            ? "#155724"
-                            : "#856404",
-                        fontWeight: "500"
-                      }}
-                    >
-                      {user.status}
-                    </span>
+            </thead>
+            <tbody>
+              {users.length === 0 ? (
+                <tr>
+                  <td colSpan="3" className="p-3 text-center text-gray-500">
+                    No invited users found
                   </td>
                 </tr>
-              ))
-            )}
-
-          </tbody>
-
-        </table>
+              ) : (
+                users.map(u => (
+                  <tr key={u.id}>
+                    <td className="p-3 border-b border-gray-200">{u.email}</td>
+                    <td className="p-3 border-b border-gray-200">{roleMap[u.role] || u.role}</td>
+                    <td className="p-3 border-b border-gray-200">
+                      <span className={statusClass(u.status)}>{u.status}</span>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       )}
-
     </div>
   );
 }

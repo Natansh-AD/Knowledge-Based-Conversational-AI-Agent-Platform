@@ -1,7 +1,6 @@
 import { useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { useAuth } from "../services/auth/useAuth"
-import "../styles/login.css"
 
 export default function Login() {
   const { org } = useParams()
@@ -23,17 +22,28 @@ export default function Login() {
   }
 
   return (
-    <div className="login-page">
-      <div className="card">
-        <h2 className="page-title">Login to {org}</h2>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
 
-        <form className="login-form" onSubmit={handleSubmit}>
+      <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
+
+        <h2 className="text-2xl font-semibold mb-4 text-center">
+          User Login
+        </h2>
+
+        {/* Instruction text above inputs */}
+        <p className="text-center text-gray-600 mb-6">
+          Sign in for the Organization: <span className="font-medium text-gray-800">{org}</span>
+        </p>
+
+        <form className="space-y-5" onSubmit={handleSubmit}>
+
           <input
             type="text"
             placeholder="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
+            className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
           />
 
           <input
@@ -42,13 +52,26 @@ export default function Login() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            className="w-full border border-gray-300 rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-400"
           />
 
-          <button type="submit">Login</button>
+          <button
+            type="submit"
+            className="w-full bg-indigo-600 text-white font-semibold py-2 rounded-md hover:bg-indigo-700 transition"
+          >
+            Login
+          </button>
 
-          {error && <p className="error">{error}</p>}
+          {error && (
+            <p className="text-red-600 text-center font-medium mt-3">
+              {error}
+            </p>
+          )}
+
         </form>
+
       </div>
+
     </div>
   )
 }

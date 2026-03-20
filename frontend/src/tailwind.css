@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body {
+    @apply m-0 p-0 h-full w-full font-sans bg-gray-100 overflow-x-hidden;
+  }
+
+  body {
+    @apply flex flex-col;
+  }
+
+  table {
+    @apply w-full border-collapse mt-5;
+  }
+
+  th, td {
+    @apply text-left p-3 border-b border-gray-200;
+  }
+}
