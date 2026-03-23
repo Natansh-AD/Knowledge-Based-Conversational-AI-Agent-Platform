@@ -2,6 +2,9 @@ import { useEffect, useState, useRef } from "react";
 import { useAuth } from "../services/auth/useAuth";
 import { useParams, useNavigate } from "react-router-dom";
 import usePageTitle from "../components/layout/usePageTitle";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+
 export default function ChatPage() {
   const { getMessages, sendMessage, createChat } = useAuth();
   const { org, agentId, chatId } = useParams();
@@ -74,7 +77,6 @@ export default function ChatPage() {
       try {
         const chat = await createChat(agentId);
         activeChatId = chat.id;
-
         navigate(`/${org}/agents/${agentId}/${activeChatId}`);
       } catch (err) {
         console.error(err);
@@ -90,7 +92,7 @@ export default function ChatPage() {
 
     try {
       const res = await sendMessage(activeChatId, input);
-      streamBotMessage(res.answer);
+      streamBotMessage(res.answer); // `res.answer` now has Markdown content
     } catch (err) {
       console.error(err);
       setShowTypingBubble(false);
@@ -101,7 +103,7 @@ export default function ChatPage() {
 
   return (
     <div className="flex h-screen">
-      {/* Sidebar is now global (DO NOT include ChatSidebar here) */}
+      {/* Sidebar is global, don't include here */}
 
       <div className="flex flex-col flex-1">
 
@@ -128,7 +130,16 @@ export default function ChatPage() {
                   animation: "fadeIn 0.2s forwards",
                 }}
               >
-                {msg.content}
+                {msg.role === "assistant" ? (
+                  <div className="prose prose-sm max-w-none prose-gray 
+                      prose-li:marker:text-gray-700">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {msg.content}
+                    </ReactMarkdown>
+                  </div>
+                ) : (
+                  msg.content
+                )}
               </div>
             ))}
 
@@ -172,9 +183,7 @@ export default function ChatPage() {
       {/* Animations */}
       <style>
         {`
-          @keyframes fadeIn {
-            to { opacity: 1; }
-          }
+          @keyframes fadeIn { to { opacity: 1; } }
 
           .typing-bubble {
             display: flex;
