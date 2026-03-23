@@ -112,13 +112,23 @@ export default function Sidebar({ collapsed }) {
       </div>
 
       {/* 🔻 FIXED LOGOUT */}
-      <div className="p-3 border-t">
-        <LoadingButton
-          text={collapsed ? "🚪" : "Logout"}
-          loadingText="Logging out..."
-          onClick={logout}
-        />
-      </div>
+        <div className="p-3 border-t">
+        {collapsed ? (
+            <button
+            onClick={logout}
+            className="text-lg flex justify-center w-full"
+            title="Logout"
+            >
+            ➜]
+            </button>
+        ) : (
+            <LoadingButton
+            text="Logout"
+            loadingText="Logging out..."
+            onClick={logout}
+            />
+        )}
+        </div>
     </div>
   );
 }

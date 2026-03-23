@@ -2,10 +2,12 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "../services/auth/useAuth";
 import DocumentUploadModal from "../components/DocumentUploadModal";
 import { useTitle } from "../components/layout/TitleContext";
+import { useOutletContext } from "react-router-dom";
 
 export default function DocumentsPage() {
   const { getDocs } = useAuth();
   const { setTitle } = useTitle();
+  const { setTopBarActions } = useOutletContext() || {};
 
   const todayDateStr = new Date().toISOString().split("T")[0];
 
@@ -31,6 +33,24 @@ export default function DocumentsPage() {
     setTitle("Documents");
   }, []);
 
+  // ✅ Set Top Bar Actions
+  useEffect(() => {
+    if (setTopBarActions) {
+      setTopBarActions(
+        <button
+          onClick={() => setIsUploadModalOpen(true)}
+          className="h-8 px-3 text-sm font-medium flex items-center justify-center bg-gray-900 text-white rounded hover:bg-gray-800"
+        >
+          Add New
+        </button>
+      );
+    }
+
+    // Cleanup on unmount
+    return () => setTopBarActions?.(null);
+  }, [setTopBarActions]);
+
+  // Fetch documents
   const fetchDocuments = async () => {
     const data = await getDocs(filters, pagination.page, pagination.page_size);
     setDocuments(data.results);
@@ -50,9 +70,7 @@ export default function DocumentsPage() {
     setPagination({ ...pagination, page: 1 });
   };
 
-  const handlePageChange = (newPage) => {
-    setPagination({ ...pagination, page: newPage });
-  };
+  const handlePageChange = (newPage) => setPagination({ ...pagination, page: newPage });
 
   const openUploadModal = () => setIsUploadModalOpen(true);
   const closeUploadModal = () => setIsUploadModalOpen(false);
@@ -60,25 +78,11 @@ export default function DocumentsPage() {
   return (
     <div className="p-4 md:p-6 bg-gray-50 min-h-screen">
 
-      {/* ❌ REMOVED TITLE */}
-
-      {/* Header Actions */}
-      <div className="flex justify-end mb-6">
-        <button
-          onClick={openUploadModal}
-          className="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors"
-        >
-          Add New
-        </button>
-      </div>
-
       {/* Filters */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        
+
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Search by Name
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Search by Name</label>
           <input
             type="text"
             name="search"
@@ -90,9 +94,7 @@ export default function DocumentsPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Created Date Range
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Created Date Range</label>
           <div className="flex items-center space-x-2">
             <input
               type="date"
@@ -115,9 +117,7 @@ export default function DocumentsPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Uploaded By (User ID)
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Uploaded By (User ID)</label>
           <input
             type="text"
             name="uploaded_by"
@@ -129,9 +129,7 @@ export default function DocumentsPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            File Type
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">File Type</label>
           <select
             name="file_type"
             value={filters.file_type}
@@ -147,9 +145,7 @@ export default function DocumentsPage() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Status
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
           <select
             name="status"
             value={filters.status}
@@ -170,16 +166,14 @@ export default function DocumentsPage() {
         <table className="min-w-full divide-y divide-gray-200 table-auto">
           <thead className="bg-gray-100 sticky top-0 z-10">
             <tr>
-              {["Name", "File Type", "Status", "Version", "Created At", "Uploaded By", "Last Modified"].map(
-                (col) => (
-                  <th
-                    key={col}
-                    className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
-                  >
-                    {col}
-                  </th>
-                )
-              )}
+              {["Name","File Type","Status","Version","Created At","Uploaded By","Last Modified"].map(col => (
+                <th
+                  key={col}
+                  className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider whitespace-nowrap"
+                >
+                  {col}
+                </th>
+              ))}
             </tr>
           </thead>
 
@@ -191,7 +185,7 @@ export default function DocumentsPage() {
                 </td>
               </tr>
             ) : (
-              documents.map((doc) => (
+              documents.map(doc => (
                 <tr key={doc.id}>
                   <td className="px-4 py-2 whitespace-nowrap">{doc.name}</td>
                   <td className="px-4 py-2 whitespace-nowrap">{doc.file_type}</td>
@@ -214,9 +208,7 @@ export default function DocumentsPage() {
             key={i + 1}
             onClick={() => handlePageChange(i + 1)}
             className={`px-3 py-1 rounded-md border ${
-              pagination.current_page === i + 1
-                ? "bg-gray-900 text-white"
-                : "bg-white text-gray-700 hover:bg-gray-100"
+              pagination.current_page === i + 1 ? "bg-gray-900 text-white" : "bg-white text-gray-700 hover:bg-gray-100"
             }`}
           >
             {i + 1}

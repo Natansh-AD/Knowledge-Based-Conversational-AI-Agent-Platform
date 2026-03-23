@@ -33,9 +33,9 @@ export default function App() {
             }
           >
             <Route path="dashboard" element={<Dashboard />} />
-            <Route path="docs" element={<Documents />} />
-            <Route path="agents" element={<AgentsPage />} />
-            <Route path="agents/:agentId/:chatId?" element={<ChatPage />} />
+            <Route path="docs" element={<Documents />} context={{ setTopBarActions: ()=> {}}}/>
+            <Route path="agents" element={<AgentsPage />} context={{ setTopBarActions: ()=> {}}}/>
+            <Route path="agents/:agentId/:chatId?" element={<ChatPage />} context={{ setTopBarActions: ()=> {}}}/>
           </Route>
 
         </Routes>
@@ -43,3 +43,9 @@ export default function App() {
     </BrowserRouter>
   )
 }
+
+<Route path="/:org"
+  
+>
+  <Route path="agents" element={<AgentsPage />} />
+</Route>

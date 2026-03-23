@@ -6,6 +6,7 @@ import { TitleContext } from "./TitleContext";
 export default function MainLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [title, setTitle] = useState("");
+  const [topBarActions, setTopBarActions] = useState(null);
 
   return (
     <TitleContext.Provider value={{ title, setTitle }}>
@@ -17,23 +18,31 @@ export default function MainLayout() {
         {/* Main Content */}
         <div className="flex flex-col flex-1">
 
-          {/* 🔥 TOP HEADER */}
-          <div className="h-14 border-b flex items-center px-4 bg-white">
-            <button
-              onClick={() => setCollapsed(!collapsed)}
-              className="mr-4 text-xl"
-            >
-              ☰
-            </button>
+          {/* Top Header */}
+          <div className="h-14 border-b flex items-center px-4 bg-white justify-between">
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => setCollapsed(!collapsed)}
+                className="text-xl"
+              >
+                ☰
+              </button>
 
-            <h1 className="text-lg font-semibold text-gray-800">
-              {title}
-            </h1>
+              {/* Page Title */}
+              <h1 className="text-lg font-semibold text-gray-800">{title}</h1>
+            </div>
+
+            {/* Dynamic Top Bar Actions */}
+            {topBarActions && (
+              <div className="flex items-center gap-2">
+                {topBarActions}
+              </div>
+            )}
           </div>
 
           {/* Page Content */}
           <div className="flex-1 overflow-auto bg-gray-50">
-            <Outlet />
+            <Outlet context={{ setTopBarActions }} />
           </div>
 
         </div>
