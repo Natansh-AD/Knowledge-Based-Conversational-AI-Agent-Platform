@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useAuth } from "../services/auth/useAuth";
-import DocumentUploadModal from "../components/DocumentUploadModal"; 
+import DocumentUploadModal from "../components/DocumentUploadModal";
+import { useTitle } from "../components/layout/TitleContext";
 
 export default function DocumentsPage() {
   const { getDocs } = useAuth();
+  const { setTitle } = useTitle();
 
   const todayDateStr = new Date().toISOString().split("T")[0];
 
@@ -23,6 +25,11 @@ export default function DocumentsPage() {
     current_page: 1,
   });
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+
+  // ✅ SET TITLE
+  useEffect(() => {
+    setTitle("Documents");
+  }, []);
 
   const fetchDocuments = async () => {
     const data = await getDocs(filters, pagination.page, pagination.page_size);
@@ -52,9 +59,11 @@ export default function DocumentsPage() {
 
   return (
     <div className="p-4 md:p-6 bg-gray-50 min-h-screen">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 space-y-3 md:space-y-0">
-        <h2 className="text-2xl font-semibold text-gray-900">Documents</h2>
+
+      {/* ❌ REMOVED TITLE */}
+
+      {/* Header Actions */}
+      <div className="flex justify-end mb-6">
         <button
           onClick={openUploadModal}
           className="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800 transition-colors"
@@ -65,7 +74,7 @@ export default function DocumentsPage() {
 
       {/* Filters */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        {/* Search */}
+        
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Search by Name
@@ -80,7 +89,6 @@ export default function DocumentsPage() {
           />
         </div>
 
-        {/* Date Range */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Created Date Range
@@ -106,7 +114,6 @@ export default function DocumentsPage() {
           </div>
         </div>
 
-        {/* Uploaded By */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Uploaded By (User ID)
@@ -121,7 +128,6 @@ export default function DocumentsPage() {
           />
         </div>
 
-        {/* File Type Dropdown */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             File Type
@@ -136,13 +142,11 @@ export default function DocumentsPage() {
             <option value="application/pdf">PDF</option>
             <option value="docx">DOCX</option>
             <option value="txt">TXT</option>
-            <option value="text/csv">CSV</option>  
-            {/* add more as needed */}
+            <option value="text/csv">CSV</option>
           </select>
         </div>
 
-        {/* Status Dropdown */}
-        <div className="sm:col-span-1 lg:col-span-1">
+        <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
             Status
           </label>
@@ -161,7 +165,7 @@ export default function DocumentsPage() {
         </div>
       </div>
 
-      {/* Documents Table */}
+      {/* Table */}
       <div className="overflow-x-auto bg-white rounded-lg shadow-md max-h-[600px]">
         <table className="min-w-full divide-y divide-gray-200 table-auto">
           <thead className="bg-gray-100 sticky top-0 z-10">
@@ -178,6 +182,7 @@ export default function DocumentsPage() {
               )}
             </tr>
           </thead>
+
           <tbody className="divide-y divide-gray-200">
             {documents.length === 0 ? (
               <tr>
@@ -219,7 +224,7 @@ export default function DocumentsPage() {
         ))}
       </div>
 
-      {/* Upload Modal */}
+      {/* Modal */}
       {isUploadModalOpen && <DocumentUploadModal onClose={closeUploadModal} />}
     </div>
   );

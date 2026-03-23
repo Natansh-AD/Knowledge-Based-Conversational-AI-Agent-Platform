@@ -2,16 +2,19 @@ import React, { useEffect, useState } from "react";
 import { useAuth } from "../services/auth/useAuth";
 import CreateAgentModal from "../components/CreateAgentModal";
 import EditAgentModal from "../components/EditAgentModal";
-import "../styles/DocumentsPage.css";
 import { useNavigate, useParams } from "react-router-dom";
+import { useTitle } from "../components/layout/TitleContext";
+import usePageTitle from "../components/layout/usePageTitle";
 
 const AgentsPage = () => {
+  usePageTitle("Agents")
   const { getAgents, getTags, updateAgentStatus, deleteAgent } = useAuth();
   const navigate = useNavigate();
-  const {org} = useParams();
+  const { org } = useParams();
+  const { setTitle } = useTitle();
+
   const [agents, setAgents] = useState([]);
   const [tags, setTags] = useState([]);
-
   const [selectedAgent, setSelectedAgent] = useState(null);
 
   const [filters, setFilters] = useState({
@@ -30,12 +33,15 @@ const AgentsPage = () => {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
-  // Fetch agents
+  // ✅ SET PAGE TITLE
+  useEffect(() => {
+    setTitle("Agents");
+  }, []);
+
   const fetchAgents = async () => {
     const data = await getAgents(filters, pagination.page, pagination.page_size);
 
     setAgents(data.results);
-
     setPagination((prev) => ({
       ...prev,
       num_pages: data.num_pages,
@@ -43,21 +49,10 @@ const AgentsPage = () => {
     }));
   };
 
-  // Fetch tags
   const fetchTags = async () => {
     try {
       const data = await getTags();
       setTags(data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const handleStartChat = async (agentId) => {
-    if (!org || !agentId) return;
-
-    try {
-      navigate(`/${org}/agents/${agentId}`);
     } catch (err) {
       console.error(err);
     }
@@ -71,95 +66,69 @@ const AgentsPage = () => {
     fetchTags();
   }, []);
 
-  // Filter change
   const handleFilterChange = (e) => {
-    setFilters({
-      ...filters,
-      [e.target.name]: e.target.value,
-    });
-
-    setPagination({
-      ...pagination,
-      page: 1,
-    });
+    setFilters({ ...filters, [e.target.name]: e.target.value });
+    setPagination({ ...pagination, page: 1 });
   };
 
-  // Click tag to filter
   const handleTagClick = (tagName) => {
-    setFilters({
-      ...filters,
-      tag: tagName,
-    });
+    setFilters({ ...filters, tag: tagName });
   };
 
-  // Pagination
-  const handlePageChange = (newPage) => {
-    setPagination({
-      ...pagination,
-      page: newPage,
-    });
+  const handlePageChange = (page) => {
+    setPagination({ ...pagination, page });
   };
 
-  // Toggle active status
   const handleStatusToggle = async (agent) => {
     await updateAgentStatus(agent.id, !agent.is_active);
     fetchAgents();
   };
 
-  // Edit agent
-  const openEditModal = (agent) => {
-    setSelectedAgent(agent);
-    setIsEditModalOpen(true);
-  };
-
-  const closeEditModal = () => {
-    setIsEditModalOpen(false);
-    setSelectedAgent(null);
-  };
-
-  // Delete agent
-  const handleDelete = async (agentId) => {
+  const handleDelete = async (id) => {
     if (!window.confirm("Delete this agent?")) return;
-
-    await deleteAgent(agentId);
+    await deleteAgent(id);
     fetchAgents();
   };
 
-  return (
-    <div className="docs-container">
-      {/* Header */}
-      <div className="header-row">
-        <h2>Agents</h2>
+  const handleStartChat = (agentId) => {
+    navigate(`/${org}/agents/${agentId}`);
+  };
 
-        {/* Button */}
+  return (
+    <div className="p-4 md:p-6 bg-gray-50 min-h-screen">
+
+      {/* ❌ REMOVED PAGE TITLE */}
+
+      {/* Header Actions Only */}
+      <div className="flex justify-end mb-6">
         <button
-          type="button"  // ✅ important, prevents accidental form submission
-          className="upload-button"
           onClick={() => setIsCreateModalOpen(true)}
+          className="px-4 py-2 bg-gray-900 text-white rounded-md hover:bg-gray-800"
         >
           Add New
         </button>
       </div>
 
       {/* Filters */}
-      <div className="filters">
-
-        <div className="filter-item">
-          <label>Search</label>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+        <div>
+          <label className="block text-sm font-medium mb-1">Search</label>
           <input
             name="search"
             value={filters.search}
-            placeholder="Agent name"
             onChange={handleFilterChange}
+            placeholder="Agent name"
+            className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-gray-400"
           />
         </div>
 
-        <div className="filter-item">
-          <label>Tag</label>
+        <div>
+          <label className="block text-sm font-medium mb-1">Tag</label>
           <select
             name="tag"
             value={filters.tag}
             onChange={handleFilterChange}
+            className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-gray-400"
           >
             <option value="">All</option>
             {tags.map((tag) => (
@@ -170,130 +139,132 @@ const AgentsPage = () => {
           </select>
         </div>
 
-        <div className="filter-item">
-          <label>Status</label>
+        <div>
+          <label className="block text-sm font-medium mb-1">Status</label>
           <select
             name="status"
             value={filters.status}
             onChange={handleFilterChange}
+            className="w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-gray-400"
           >
             <option value="">All</option>
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
           </select>
         </div>
-
       </div>
 
-      {/* Agents Table */}
-      <table className="docs-table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Description</th>
-            <th>Document</th>
-            <th>Tags</th>
-            <th>Status</th>
-            <th style={{ width: "80px" }}>Actions</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {agents.length === 0 ? (
+      {/* Table */}
+      <div className="overflow-x-auto bg-white rounded-lg shadow-md max-h-[600px]">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-100 sticky top-0">
             <tr>
-              <td colSpan="6" style={{ textAlign: "center", padding: "20px" }}>
-                No agents found
-              </td>
+              {["Name", "Description", "Document", "Tags", "Status", "Actions"].map((col) => (
+                <th
+                  key={col}
+                  className="px-4 py-2 text-left text-xs font-medium text-gray-500 uppercase"
+                >
+                  {col}
+                </th>
+              ))}
             </tr>
-          ) : (
-            agents.map((agent) => (
-              <tr key={agent.id}>
-                <td>{agent.name}</td>
+          </thead>
 
-                <td>{agent.description}</td>
-
-                <td>{agent.document_name}</td>
-
-                <td>
-                  {agent.tags_detail?.map((tag) => (
-                    <span
-                      key={tag.id}
-                      className="tag clickable"
-                      onClick={() => handleTagClick(tag.name)}
-                    >
-                      {tag.name}
-                    </span>
-                  ))}
+          <tbody className="divide-y">
+            {agents.length === 0 ? (
+              <tr>
+                <td colSpan="6" className="text-center py-6 text-gray-500">
+                  No agents found
                 </td>
+              </tr>
+            ) : (
+              agents.map((agent) => (
+                <tr key={agent.id}>
+                  <td className="px-4 py-2">{agent.name}</td>
+                  <td className="px-4 py-2">{agent.description}</td>
+                  <td className="px-4 py-2">{agent.document_name}</td>
 
-                {/* Toggle */}
-                <td>
-                  <label className="switch">
+                  <td className="px-4 py-2">
+                    <div className="flex flex-wrap gap-1">
+                      {agent.tags_detail?.map((tag) => (
+                        <span
+                          key={tag.id}
+                          onClick={() => handleTagClick(tag.name)}
+                          className="px-2 py-1 text-xs bg-gray-200 rounded cursor-pointer hover:bg-gray-300"
+                        >
+                          {tag.name}
+                        </span>
+                      ))}
+                    </div>
+                  </td>
+
+                  <td className="px-4 py-2">
                     <input
                       type="checkbox"
                       checked={agent.is_active}
                       onChange={() => handleStatusToggle(agent)}
                     />
-                    <span className="slider"></span>
-                  </label>
-                </td>
+                  </td>
 
-                {/* Actions */}
-                <td>
-                  <button
-                    className="action-btn"
-                    onClick={() => openEditModal(agent)}
-                  >
-                    Edit
-                  </button>
+                  <td className="px-4 py-2 space-x-2">
+                    <button
+                      onClick={() => setSelectedAgent(agent) || setIsEditModalOpen(true)}
+                      className="text-sm text-blue-600 hover:underline"
+                    >
+                      Edit
+                    </button>
 
-                  <button
-                    className="delete-btn"
-                    onClick={() => handleDelete(agent.id)}
-                  >
-                    Delete
-                  </button>
+                    <button
+                      onClick={() => handleDelete(agent.id)}
+                      className="text-sm text-red-600 hover:underline"
+                    >
+                      Delete
+                    </button>
 
-                  <button
-                    className="action-btn"
-                    onClick={() => handleStartChat(agent.id)}
-                  >
-                    Chat
-                  </button>
-                </td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+                    <button
+                      onClick={() => handleStartChat(agent.id)}
+                      className="text-sm text-gray-800 hover:underline"
+                    >
+                      Chat
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
 
       {/* Pagination */}
-      <div className="pagination">
+      <div className="flex justify-center mt-4 gap-2 flex-wrap">
         {Array.from({ length: pagination.num_pages }, (_, i) => (
           <button
             key={i + 1}
-            className={pagination.current_page === i + 1 ? "active" : ""}
             onClick={() => handlePageChange(i + 1)}
+            className={`px-3 py-1 rounded-md border ${
+              pagination.current_page === i + 1
+                ? "bg-gray-900 text-white"
+                : "bg-white hover:bg-gray-100"
+            }`}
           >
             {i + 1}
           </button>
         ))}
       </div>
 
-      {/* Create Modal */}
+      {/* Modals */}
       {isCreateModalOpen && (
         <CreateAgentModal
-          isOpen={isCreateModalOpen}          // ✅ pass isOpen prop
+          isOpen={isCreateModalOpen}
           onClose={() => setIsCreateModalOpen(false)}
-          onAgentCreated={fetchAgents}        // ✅ callback after creation
+          onAgentCreated={fetchAgents}
         />
       )}
 
-      {/* Edit Modal */}
       {isEditModalOpen && (
         <EditAgentModal
           agent={selectedAgent}
-          onClose={closeEditModal}
+          onClose={() => setIsEditModalOpen(false)}
           onAgentUpdated={fetchAgents}
         />
       )}

@@ -2,13 +2,14 @@ import { BrowserRouter, Routes, Route } from "react-router-dom"
 import { AuthProvider } from "./services/auth/AuthProvider"
 import ProtectedRoute from "./services/routes/ProtectedRoute"
 
+import MainLayout from "./components/layout/MainLayout"
+
 import OrgEntry from "./pages/OrgEntry"
 import Login from "./pages/Login"
 import Dashboard from "./pages/Dashboard"
 import Invite from "./pages/Invite"
 import Documents from "./pages/Documents"
 import AgentsPage from "./pages/Agents"
-import DocumentUploadModal from "./components/DocumentUploadModal"
 import ChatPage from "./pages/ChatPage"
 
 export default function App() {
@@ -16,47 +17,28 @@ export default function App() {
     <BrowserRouter>
       <AuthProvider>
         <Routes>
+
+          {/* Public Routes */}
           <Route path="/" element={<OrgEntry />} />
           <Route path="/:org/login" element={<Login />} />
           <Route path="/:org/invite/:token" element={<Invite />} />
+
+          {/* Protected Routes */}
           <Route
-            path="/:org/dashboard"
+            path="/:org"
             element={
               <ProtectedRoute>
-                <Dashboard />
+                <MainLayout />
               </ProtectedRoute>
             }
-          />
-
-          <Route
-            path="/:org/docs"
-            element={
-              <ProtectedRoute>
-                <Documents />
-              </ProtectedRoute>
-            }
-          />
-
-        <Route
-            path="/:org/agents"
-            element={
-              <ProtectedRoute>
-                <AgentsPage />
-              </ProtectedRoute>
-            }
-          />
-
-        <Route 
-            path="/:org/agents/:agentId/:chatId?" 
-            element={
-              <ProtectedRoute>
-                <ChatPage />
-              </ProtectedRoute>
-            }  
-          />
+          >
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="docs" element={<Documents />} />
+            <Route path="agents" element={<AgentsPage />} />
+            <Route path="agents/:agentId/:chatId?" element={<ChatPage />} />
+          </Route>
 
         </Routes>
-
       </AuthProvider>
     </BrowserRouter>
   )

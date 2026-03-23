@@ -1,8 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import { useAuth } from "../services/auth/useAuth";
 import { useParams, useNavigate } from "react-router-dom";
-import ChatSidebar from "../components/ChatSidebar";
-
+import usePageTitle from "../components/layout/usePageTitle";
 export default function ChatPage() {
   const { getMessages, sendMessage, createChat } = useAuth();
   const { org, agentId, chatId } = useParams();
@@ -13,12 +12,18 @@ export default function ChatPage() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [showTypingBubble, setShowTypingBubble] = useState(false);
+  usePageTitle(title ? title : "New Chat");
 
   const bottomRef = useRef(null);
 
   // Load messages if chat exists
   useEffect(() => {
-    if (!chatId) return;
+    if (!chatId) {
+      setMessages([]);
+      setTitle("");
+      return;
+    }
+
     async function loadMessages() {
       try {
         const data = await getMessages(chatId);
@@ -28,6 +33,7 @@ export default function ChatPage() {
         console.error(err);
       }
     }
+
     loadMessages();
   }, [chatId]);
 
@@ -39,20 +45,23 @@ export default function ChatPage() {
   // Stream bot message character by character
   const streamBotMessage = (text) => {
     let i = 0;
-    setShowTypingBubble(false); // stop typing dots
+    setShowTypingBubble(false);
+
     const botMsg = { role: "assistant", content: "" };
     setMessages((prev) => [...prev, botMsg]);
 
     const intervalId = setInterval(() => {
       i++;
       botMsg.content = text.slice(0, i);
+
       setMessages((prev) => {
         const newMsgs = [...prev];
         newMsgs[newMsgs.length - 1] = { ...botMsg };
         return newMsgs;
       });
+
       if (i >= text.length) clearInterval(intervalId);
-    }, 20); // typing speed
+    }, 20);
   };
 
   const handleSend = async () => {
@@ -65,6 +74,7 @@ export default function ChatPage() {
       try {
         const chat = await createChat(agentId);
         activeChatId = chat.id;
+
         navigate(`/${org}/agents/${agentId}/${activeChatId}`);
       } catch (err) {
         console.error(err);
@@ -76,12 +86,11 @@ export default function ChatPage() {
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setLoading(true);
-
-    setShowTypingBubble(true); // start dots
+    setShowTypingBubble(true);
 
     try {
       const res = await sendMessage(activeChatId, input);
-      streamBotMessage(res.answer); // stream response
+      streamBotMessage(res.answer);
     } catch (err) {
       console.error(err);
       setShowTypingBubble(false);
@@ -91,20 +100,18 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="chat-container flex h-screen">
-      <ChatSidebar agentId={agentId} />
+    <div className="flex h-screen">
+      {/* Sidebar is now global (DO NOT include ChatSidebar here) */}
 
-      <div className="chat-main flex flex-col flex-1">
-        <div className="chat-header px-5 py-3 border-b border-gray-300 font-semibold">
-          Agent {agentId} {title ? `| ${title}` : "| New Chat"}
-        </div>
+      <div className="flex flex-col flex-1">
 
+        {/* Empty state */}
         {!chatId ? (
-          <div className="empty-state flex-1 flex items-center justify-center text-gray-500">
+          <div className="flex-1 flex items-center justify-center text-gray-500">
             Start a new conversation
           </div>
         ) : (
-          <div className="chat-messages flex-1 flex flex-col gap-2 overflow-y-auto p-5">
+          <div className="flex-1 flex flex-col gap-2 overflow-y-auto p-5">
             {messages.map((msg, index) => (
               <div
                 key={index}
@@ -137,7 +144,8 @@ export default function ChatPage() {
           </div>
         )}
 
-        <div className="chat-input flex p-4 border-t border-gray-300">
+        {/* Input */}
+        <div className="flex p-4 border-t border-gray-300">
           <input
             className="flex-1 px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400"
             value={input}
@@ -150,6 +158,7 @@ export default function ChatPage() {
             }}
             placeholder="Type a message..."
           />
+
           <button
             className="ml-3 px-5 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-700 disabled:opacity-50"
             onClick={handleSend}
@@ -160,6 +169,7 @@ export default function ChatPage() {
         </div>
       </div>
 
+      {/* Animations */}
       <style>
         {`
           @keyframes fadeIn {
