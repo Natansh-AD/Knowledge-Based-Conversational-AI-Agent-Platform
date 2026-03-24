@@ -30,14 +30,15 @@ class AgentView(APIView):
 
         # Filters
         search = request.GET.get("search")
-        tag = request.GET.get("tag")
+        tag_param = request.GET.get("tag")
+        tags = [int(t) for t in tag_param.split(",") if t.isdigit()]
         status_filter = request.GET.get("status")
 
         if search:
             agents = agents.filter(name__icontains=search)
 
-        if tag:
-            agents = agents.filter(tags__name__icontains=tag)
+        if tags:
+            agents = agents.filter(tags__id__in=tags).distinct()
 
         if status_filter:
             if status_filter.lower() == "active":

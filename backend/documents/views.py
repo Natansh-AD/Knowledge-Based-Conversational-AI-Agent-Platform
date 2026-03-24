@@ -56,7 +56,8 @@ def getAllDocuments(request, tenant_slug=None):
     # Filters
     search = request.GET.get("search")
     uploaded_by = request.GET.get("uploaded_by")
-    file_type = request.GET.get("file_type")
+    file_type_param = request.GET.get("file_type")
+    file_type = file_type_param.split(",") if file_type_param else []
     status_filter = request.GET.get("status")
     start_date = request.GET.get("start_date")
     end_date = request.GET.get("end_date")
@@ -79,7 +80,7 @@ def getAllDocuments(request, tenant_slug=None):
 
     # File type filter
     if file_type:
-        documents = documents.filter(file_type__istartswith=file_type)
+        documents = documents.filter(file_type__in=file_type)
 
     # Status filter
     if status_filter:

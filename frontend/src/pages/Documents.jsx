@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useAuth } from "../services/auth/useAuth";
 import DocumentUploadModal from "../components/DocumentUploadModal";
+import MultiSelectDropdown from "../components/MultiSelectDropdown";
 import { useTitle } from "../components/layout/TitleContext";
 import { useOutletContext } from "react-router-dom";
 
@@ -15,25 +16,32 @@ export default function DocumentsPage() {
   const [filters, setFilters] = useState({
     search: "",
     uploaded_by: "",
-    file_type: "",
+    file_type: [], // multi-select
     status: "",
     start_date: todayDateStr,
     end_date: todayDateStr,
   });
+
   const [pagination, setPagination] = useState({
     page: 1,
     page_size: 10,
     num_pages: 1,
     current_page: 1,
   });
+
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
-  // ✅ SET TITLE
-  useEffect(() => {
-    setTitle("Documents");
-  }, []);
+  const fileTypeOptions = [
+    { id: "application/pdf", name: "PDF" },
+    { id: "docx", name: "DOCX" },
+    { id: "txt", name: "TXT" },
+    { id: "text/csv", name: "CSV" },
+  ];
 
-  // ✅ Set Top Bar Actions
+  // Set page title
+  useEffect(() => setTitle("Documents"), [setTitle]);
+
+  // Top bar "Add New"
   useEffect(() => {
     if (setTopBarActions) {
       setTopBarActions(
@@ -45,32 +53,39 @@ export default function DocumentsPage() {
         </button>
       );
     }
-
-    // Cleanup on unmount
     return () => setTopBarActions?.(null);
   }, [setTopBarActions]);
 
   // Fetch documents
   const fetchDocuments = async () => {
-    const data = await getDocs(filters, pagination.page, pagination.page_size);
+    const data = await getDocs(
+      {
+        ...filters,
+        file_type: filters.file_type.join(","), // send IDs to backend
+      },
+      pagination.page,
+      pagination.page_size
+    );
+
     setDocuments(data.results);
-    setPagination({
-      ...pagination,
+    setPagination(prev => ({
+      ...prev,
       num_pages: data.num_pages,
       current_page: data.current_page,
-    });
+    }));
   };
 
   useEffect(() => {
     fetchDocuments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters, pagination.page, pagination.page_size]);
 
-  const handleFilterChange = (e) => {
+  const handleFilterChange = e => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
-    setPagination({ ...pagination, page: 1 });
+    setPagination(prev => ({ ...prev, page: 1 }));
   };
 
-  const handlePageChange = (newPage) => setPagination({ ...pagination, page: newPage });
+  const handlePageChange = newPage => setPagination({ ...pagination, page: newPage });
 
   const openUploadModal = () => setIsUploadModalOpen(true);
   const closeUploadModal = () => setIsUploadModalOpen(false);
@@ -81,6 +96,7 @@ export default function DocumentsPage() {
       {/* Filters */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
 
+        {/* Search */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Search by Name</label>
           <input
@@ -93,6 +109,7 @@ export default function DocumentsPage() {
           />
         </div>
 
+        {/* Date range */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Created Date Range</label>
           <div className="flex items-center space-x-2">
@@ -116,6 +133,7 @@ export default function DocumentsPage() {
           </div>
         </div>
 
+        {/* Uploaded by */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Uploaded By (User ID)</label>
           <input
@@ -128,22 +146,23 @@ export default function DocumentsPage() {
           />
         </div>
 
+        {/* File type (multi-select) */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">File Type</label>
-          <select
-            name="file_type"
-            value={filters.file_type}
-            onChange={handleFilterChange}
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm"
-          >
-            <option value="">All</option>
-            <option value="application/pdf">PDF</option>
-            <option value="docx">DOCX</option>
-            <option value="txt">TXT</option>
-            <option value="text/csv">CSV</option>
-          </select>
+          <MultiSelectDropdown
+            options={fileTypeOptions}
+            labelKey="name"
+            valueKey="id"
+            selectedValues={filters.file_type}
+            onChange={values => {
+              setFilters({ ...filters, file_type: values });
+              setPagination(prev => ({ ...prev, page: 1 }));
+            }}
+            placeholder="Select file types"
+          />
         </div>
 
+        {/* Status */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
           <select
@@ -159,10 +178,11 @@ export default function DocumentsPage() {
             <option value="failed">Failed</option>
           </select>
         </div>
+
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto bg-white rounded-lg shadow-md max-h-[600px]">
+      <div className="overflow-x-auto bg-white rounded-lg shadow-md max-h-[600px] relative">
         <table className="min-w-full divide-y divide-gray-200 table-auto">
           <thead className="bg-gray-100 sticky top-0 z-10">
             <tr>
@@ -188,7 +208,11 @@ export default function DocumentsPage() {
               documents.map(doc => (
                 <tr key={doc.id}>
                   <td className="px-4 py-2 whitespace-nowrap">{doc.name}</td>
-                  <td className="px-4 py-2 whitespace-nowrap">{doc.file_type}</td>
+                  <td className="px-4 py-2 whitespace-nowrap">
+                    {
+                      fileTypeOptions.find(f => f.id === doc.file_type)?.name || doc.file_type
+                    }
+                  </td>
                   <td className="px-4 py-2 whitespace-nowrap capitalize">{doc.status}</td>
                   <td className="px-4 py-2 whitespace-nowrap">{doc.version}</td>
                   <td className="px-4 py-2 whitespace-nowrap">{new Date(doc.created_at).toLocaleString()}</td>
@@ -216,7 +240,7 @@ export default function DocumentsPage() {
         ))}
       </div>
 
-      {/* Modal */}
+      {/* Upload Modal */}
       {isUploadModalOpen && <DocumentUploadModal onClose={closeUploadModal} />}
     </div>
   );
