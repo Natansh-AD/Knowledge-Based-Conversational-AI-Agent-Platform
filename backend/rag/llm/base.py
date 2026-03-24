@@ -13,8 +13,6 @@ class BaseLLMProvider(ABC):
 
 class GeminiProvider(BaseLLMProvider):
     def __init__(self):
-        import genai
-        from django.conf import settings
 
         genai.configure(api_key=settings.GEMINI_API_KEY)
         self.model = genai.GenerativeModel("gemini-2.5-flash")
