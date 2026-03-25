@@ -71,6 +71,11 @@ export default function ChatPage() {
     if (!input.trim() || !agentId || loading) return;
 
     let activeChatId = chatId;
+    const wordCount = input.trim().split(/\s+/).length
+    if (wordCount>250){
+      alert("Message cannot exceed 250 words");
+      return;
+    }
 
     // Create chat if not exists
     if (!activeChatId) {

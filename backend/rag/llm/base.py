@@ -29,16 +29,16 @@ class GeminiProvider(BaseLLMProvider):
         ]
 
         markdown_prompt = (
-        f"{system_prompt}\n\n"
-        "Formatting rules (VERY IMPORTANT):\n"
-        "- Use Markdown.\n"
-        "- Use bullet points (-) whenever listing items.\n"
-        "- Use numbered lists for steps.\n"
-        "- Avoid long paragraphs; break into bullets wherever possible.\n"
-        "- Use headings (##, ###) to structure content.\n"
-        "- Prefer short, structured answers over dense text.\n\n"
-        f"Question:\n{question}"
-    )
+            f"{system_prompt}\n\n"
+            "Formatting rules (VERY IMPORTANT):\n"
+            "- Use Markdown.\n"
+            "- Use bullet points (-) whenever listing items.\n"
+            "- Use numbered lists for steps.\n"
+            "- Avoid long paragraphs; break into bullets wherever possible.\n"
+            "- Use headings (##, ###) to structure content.\n"
+            "- Prefer short, structured answers over dense text.\n\n"
+            f"Question:\n{question}"
+        )
 
         chat = self.model.start_chat(history=chat_history)
         raw_response = chat.send_message(markdown_prompt).text

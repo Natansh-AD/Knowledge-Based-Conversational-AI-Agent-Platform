@@ -5,6 +5,8 @@ from agent.models import Agent
 from rag.processors.embeddings import generate_embeddings
 from chat.models import ChatMessage
 
+AVG_SIMILARITY_THRESHOLD = 0.60
+TOP_SIMILARITY_THRESHOLD = 0.70
 def retrieve_chunks(query, agent, top_k=5):
 
     query_embedding = generate_embeddings([query])[0]
@@ -17,6 +19,17 @@ def retrieve_chunks(query, agent, top_k=5):
             .order_by("distance")[:top_k]
     )
 
+    results = list(results)
+    if not results:
+        return None
+    
+    similarities = [1 - r.distance for r in results]
+    avg_similarity = sum(similarities)/ len(similarities)
+    top_similarity = similarities[0]
+
+    if avg_similarity < AVG_SIMILARITY_THRESHOLD and top_similarity < TOP_SIMILARITY_THRESHOLD:
+        return None
+    
     return results
 
 def get_history(chat):

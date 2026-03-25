@@ -80,7 +80,7 @@ class SendMessage(APIView):
 
         chat = ChatSession.objects.get(id=chat_id)
         if not chat.title:
-            chat.title = message[:10]
+            chat.title = message[:30]
             chat.save()
 
         # Save user message

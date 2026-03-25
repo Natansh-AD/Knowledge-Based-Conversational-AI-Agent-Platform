@@ -3,6 +3,28 @@ from sentence_transformers import SentenceTransformer
 from documents.models import DocumentChunk
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
+BLOCKED_PATTERNS = [
+    "write code",
+    "generate code",
+    "python code",
+    "tell a joke",
+    "make a story",
+    "weather",
+    "movie recommendation",
+    "solve this",
+    "translate this",
+]
+
+
+def is_query_allowed(query: str) -> bool:
+    q = query.lower()
+
+    for pattern in BLOCKED_PATTERNS:
+        if pattern in q:
+            return False
+
+    return True
+
 def generate_embeddings(texts):
 
     embeddings = model.encode(texts)
