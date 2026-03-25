@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import { useAuth } from "../services/auth/useAuth";
 import DocumentUploadModal from "../components/DocumentUploadModal";
 import MultiSelectDropdown from "../components/MultiSelectDropdown";
@@ -6,17 +6,19 @@ import { useTitle } from "../components/layout/TitleContext";
 import { useOutletContext } from "react-router-dom";
 
 export default function DocumentsPage() {
-  const { getDocs } = useAuth();
+  const { getDocs, fetchUsers } = useAuth();
   const { setTitle } = useTitle();
   const { setTopBarActions } = useOutletContext() || {};
 
   const todayDateStr = new Date().toISOString().split("T")[0];
 
   const [documents, setDocuments] = useState([]);
+  const [users, setUsers] = useState([]);
+
   const [filters, setFilters] = useState({
     search: "",
-    uploaded_by: "",
-    file_type: [], // multi-select
+    uploaded_by: [], // multi-select user IDs
+    file_type: [],   // multi-select file types
     status: "",
     start_date: todayDateStr,
     end_date: todayDateStr,
@@ -56,23 +58,42 @@ export default function DocumentsPage() {
     return () => setTopBarActions?.(null);
   }, [setTopBarActions]);
 
+  // Fetch users for dropdown
+  useEffect(() => {
+    const loadUsers = async () => {
+      try {
+        const res = await fetchUsers();
+        console.log("Fetched users:", res);
+        setUsers(res || []);
+      } catch (err) {
+        console.error("Failed to fetch users", err);
+      }
+    };
+    loadUsers();
+  }, [fetchUsers]);
+
   // Fetch documents
   const fetchDocuments = async () => {
-    const data = await getDocs(
-      {
-        ...filters,
-        file_type: filters.file_type.join(","), // send IDs to backend
-      },
-      pagination.page,
-      pagination.page_size
-    );
+    try {
+      const data = await getDocs(
+        {
+          ...filters,
+          file_type: filters.file_type.join(","),       // backend expects CSV
+          uploaded_by: filters.uploaded_by.join(","),   // backend expects CSV
+        },
+        pagination.page,
+        pagination.page_size
+      );
 
-    setDocuments(data.results);
-    setPagination(prev => ({
-      ...prev,
-      num_pages: data.num_pages,
-      current_page: data.current_page,
-    }));
+      setDocuments(data.results || []);
+      setPagination(prev => ({
+        ...prev,
+        num_pages: data.num_pages || 1,
+        current_page: data.current_page || 1,
+      }));
+    } catch (err) {
+      console.error("Failed to fetch documents", err);
+    }
   };
 
   useEffect(() => {
@@ -133,16 +154,19 @@ export default function DocumentsPage() {
           </div>
         </div>
 
-        {/* Uploaded by */}
+        {/* Uploaded By (multi-select) */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Uploaded By (User ID)</label>
-          <input
-            type="text"
-            name="uploaded_by"
-            value={filters.uploaded_by}
-            onChange={handleFilterChange}
-            placeholder="Uploader ID"
-            className="w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400 text-sm"
+          <label className="block text-sm font-medium text-gray-700 mb-1">Uploaded By</label>
+          <MultiSelectDropdown
+            options={users}
+            labelKey="username"      // display username
+            valueKey="id"         // value = id
+            selectedValues={filters.uploaded_by}
+            onChange={values => {
+              setFilters({ ...filters, uploaded_by: values });
+              setPagination(prev => ({ ...prev, page: 1 }));
+            }}
+            placeholder="Select users"
           />
         </div>
 
@@ -209,14 +233,14 @@ export default function DocumentsPage() {
                 <tr key={doc.id}>
                   <td className="px-4 py-2 whitespace-nowrap">{doc.name}</td>
                   <td className="px-4 py-2 whitespace-nowrap">
-                    {
-                      fileTypeOptions.find(f => f.id === doc.file_type)?.name || doc.file_type
-                    }
+                    {fileTypeOptions.find(f => f.id === doc.file_type)?.name || doc.file_type}
                   </td>
                   <td className="px-4 py-2 whitespace-nowrap capitalize">{doc.status}</td>
                   <td className="px-4 py-2 whitespace-nowrap">{doc.version}</td>
                   <td className="px-4 py-2 whitespace-nowrap">{new Date(doc.created_at).toLocaleString()}</td>
-                  <td className="px-4 py-2 whitespace-nowrap">{doc.uploaded_by}</td>
+                  <td className="px-4 py-2 whitespace-nowrap">
+                    {users.find(u => u.id === doc.uploaded_by)?.username || "Unknown"}
+                  </td>
                   <td className="px-4 py-2 whitespace-nowrap">{new Date(doc.last_modified_at).toLocaleString()}</td>
                 </tr>
               ))

@@ -8,6 +8,7 @@ export const AuthContext = createContext()
 export function AuthProvider({ children }) {
   const tenant = getOrgFromPath() // e.g., "acme"
   const [user, setUser] = useState(null)
+  const [users, setUsers] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [refreshing, setRefreshing] = useState(false) // to prevent concurrent refreshes
@@ -123,6 +124,19 @@ export function AuthProvider({ children }) {
     } catch (err) {
       throw new Error(
         err.response?.data?.detail || "Failed to complete invite"
+      )
+    }
+  }
+
+  async function fetchUsers(){
+    try{
+      const res = await api.get(`/${tenant}/users/`)
+      setUsers(res.data)
+      console.log(res.data)
+      return res.data
+    } catch(err){
+      throw new Error(
+        err.response?.data?.detail || "Failed to fetch users"
       )
     }
   }
@@ -313,6 +327,7 @@ export function AuthProvider({ children }) {
         refresh,
         validateInvite,
         acceptInvite,
+        fetchUsers,
         updateUser,
         getInvitedUsers,
         sendInvite,

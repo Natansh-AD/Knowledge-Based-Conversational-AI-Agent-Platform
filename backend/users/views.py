@@ -19,6 +19,7 @@ from rest_framework.views import APIView
 
 # Create your views here.
 class UserListView(ListAPIView):
+    permission_classes = [IsAuthenticated]
     serializer_class = UserSerializer
 
     def get_queryset(self):
