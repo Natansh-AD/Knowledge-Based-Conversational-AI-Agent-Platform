@@ -23,20 +23,15 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-
       <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
-
         <h2 className="text-2xl font-semibold mb-4 text-center">
           User Login
         </h2>
-
-        {/* Instruction text above inputs */}
         <p className="text-center text-gray-600 mb-6">
           Sign in for the Organization: <span className="font-medium text-gray-800">{org}</span>
         </p>
 
         <form className="space-y-5" onSubmit={handleSubmit}>
-
           <input
             type="text"
             placeholder="Username"
@@ -62,16 +57,24 @@ export default function Login() {
             Login
           </button>
 
+          {/* Forgot Password Link */}
+          <p className="text-center mt-2">
+            <button
+              type="button"
+              onClick={() => navigate(`/${org}/forgot-password`)}
+              className="text-indigo-600 hover:underline font-medium"
+            >
+              Forgot Password?
+            </button>
+          </p>
+
           {error && (
             <p className="text-red-600 text-center font-medium mt-3">
               {error}
             </p>
           )}
-
         </form>
-
       </div>
-
     </div>
   )
 }

@@ -316,6 +316,36 @@ export function AuthProvider({ children }) {
     }
   }
 
+  async function forgotPassword(email) {
+    if (!email) throw new Error("Email is required");
+
+    try {
+      const res = await api.post(`/${tenant}/users/forgot-password/`, { email });
+      return res.data; // { detail: "Password reset email sent." }
+    } catch (err) {
+      throw new Error(
+        err.response?.data?.detail || "Failed to send password reset email"
+      );
+    }
+  }
+
+  async function resetPassword({ uid, token, password }) {
+    if (!uid || !token || !password) {
+      throw new Error("UID, token, and new password are required");
+    }
+
+    try {
+      const res = await api.post(`/${tenant}/users/reset-password/${uid}/${token}/`, {
+        password,
+      });
+      return res.data; // { detail: "Password reset successful." }
+    } catch (err) {
+      throw new Error(
+        err.response?.data?.detail || "Failed to reset password"
+      );
+    }
+}
+
   return (
     <AuthContext.Provider
       value={{
@@ -331,6 +361,8 @@ export function AuthProvider({ children }) {
         updateUser,
         getInvitedUsers,
         sendInvite,
+        forgotPassword,
+        resetPassword,
         getDocs,
         uploadDoc,
         getAgents,

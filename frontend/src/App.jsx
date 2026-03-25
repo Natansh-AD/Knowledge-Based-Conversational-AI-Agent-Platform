@@ -6,6 +6,8 @@ import MainLayout from "./components/layout/MainLayout"
 
 import OrgEntry from "./pages/OrgEntry"
 import Login from "./pages/Login"
+import ForgotPassword from "./pages/ForgotPassword"
+import ResetPassword from "./pages/ResetPassword"
 import Dashboard from "./pages/Dashboard"
 import Invite from "./pages/Invite"
 import Documents from "./pages/Documents"
@@ -21,7 +23,9 @@ export default function App() {
           {/* Public Routes */}
           <Route path="/" element={<OrgEntry />} />
           <Route path="/:org/login" element={<Login />} />
+          <Route path="/:org/forgot-password" element={<ForgotPassword />} />
           <Route path="/:org/invite/:token" element={<Invite />} />
+          <Route path="/:org/reset-password/:uid/:token" element={<ResetPassword/> }/>
 
           {/* Protected Routes */}
           <Route

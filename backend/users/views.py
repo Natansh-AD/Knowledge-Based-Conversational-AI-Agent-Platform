@@ -10,11 +10,10 @@ from .models import Invitation
 from .serializer import InvitationSerializer
 from rest_framework import status
 from rest_framework_simplejwt.tokens import RefreshToken
-from django_tenants.utils import tenant_context
-from .services import create_invite, getAllInvites
-from .emails import send_invite_email
+from django_tenants.utils import tenant_context, get_tenant_model
+from .services import create_invite, getAllInvites, reset_user_password
+from .emails import send_invite_email, send_password_reset_email
 from rest_framework.views import APIView
-
 
 
 # Create your views here.
@@ -129,3 +128,47 @@ def getInvitedUsers(request, tenant_slug=''):
     invites = getAllInvites(request.tenant).filter(invited_by_id=request.user.id)
     serializer = InvitationSerializer(invites, many=True)
     return Response(serializer.data, status=200)
+
+
+class ForgotPasswordView(APIView):
+    permission_classes = [AllowAny]
+    """
+    Handles user password reset requests.
+    """
+    def post(self, request, tenant_slug=''):
+        email = request.data.get("email")
+        if not email:
+            return Response({"detail": "Email is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            return Response({"detail": "Email not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        # Send password reset email
+        send_password_reset_email(user, tenant_slug=tenant_slug)
+
+        return Response({"detail": "Password reset email sent."}, status=status.HTTP_200_OK)
+    
+class ResetPasswordView(APIView):
+    permission_classes = [AllowAny]
+    """
+    Allows users to reset their password using UID and token.
+    """
+    def post(self, request, uidb64, token, tenant_slug=''):
+
+        TenantModel = get_tenant_model()
+
+        try:
+            tenant = TenantModel.objects.get(schema_name=tenant_slug)
+        except TenantModel.DoesNotExist:
+            return Response({"detail": "Invalid tenant"}, status=400)
+        
+        with tenant_context(tenant):
+            new_password = request.data.get("password")
+            success, message = reset_user_password(uidb64, token, new_password)
+
+        if success:
+            return Response({"detail": message}, status=status.HTTP_200_OK)
+        else:
+            return Response({"detail": message}, status=status.HTTP_400_BAD_REQUEST)
