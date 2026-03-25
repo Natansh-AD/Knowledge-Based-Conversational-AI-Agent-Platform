@@ -13,6 +13,7 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from datetime import datetime, timedelta
 from .tasks import process_document 
 from django.db import connection 
+from django.utils import timezone
 
 # s3 views
 @api_view(["POST"])
@@ -89,12 +90,14 @@ def getAllDocuments(request, tenant_slug=None):
     # Date filters
     if start_date:
         try:
-            start_dt = datetime.strptime(start_date, "%Y-%m-%d")
+            start_dt = timezone.make_aware(datetime.strptime(start_date, "%Y-%m-%d"))
         except ValueError:
             start_dt = None
     if end_date:
         try:
-            end_dt = datetime.strptime(end_date, "%Y-%m-%d") + timedelta(days=1) - timedelta(seconds=1)
+            end_dt = timezone.make_aware(
+                datetime.strptime(end_date, "%Y-%m-%d") + timedelta(days=1) - timedelta(seconds=1)
+            )
         except ValueError:
             end_dt = None
 
