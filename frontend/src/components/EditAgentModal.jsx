@@ -35,12 +35,12 @@ const EditAgentModal = ({ agent, onClose, onAgentUpdated }) => {
 
       await updateAgent(agent.id, payload);
 
-      alert("Agent updated!");
+      toast.success(`${agent.name} updated!`);
       onAgentUpdated();
       onClose();
     } catch (err) {
       console.error(err);
-      alert(err.message || "Update failed");
+      toast.err(err.message || "Update failed");
     } finally {
       setLoading(false);
     }

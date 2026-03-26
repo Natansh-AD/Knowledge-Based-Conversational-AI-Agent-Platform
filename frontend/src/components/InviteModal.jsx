@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { useAuth } from "../services/auth/useAuth"
+import { toast } from "react-hot-toast"
 
 export default function InviteModal({ close }) {
   const { sendInvite } = useAuth()
@@ -21,11 +22,12 @@ export default function InviteModal({ close }) {
     try {
       await sendInvite(form)
       setSuccess(true)
+      toast.success("User created !!")
       setTimeout(() => {
         close()
       }, 1500)
     } catch (err) {
-      alert(err.message)
+      toast.err(err.message)
     } finally {
       setLoading(false)
     }

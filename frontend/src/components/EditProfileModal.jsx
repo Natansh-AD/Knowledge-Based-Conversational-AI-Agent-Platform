@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { useAuth } from "../services/auth/useAuth"
+import { toast } from "react-hot-toast"
 
 export default function EditProfileModal({ user, close }) {
   const { updateUser } = useAuth()
@@ -22,9 +23,10 @@ export default function EditProfileModal({ user, close }) {
     e.preventDefault()
     try {
       await updateUser(form)
+      toast.success("User Details updated")
       close()
     } catch (err) {
-      alert(err.message)
+      toast.err(err.message)
     }
   }
 

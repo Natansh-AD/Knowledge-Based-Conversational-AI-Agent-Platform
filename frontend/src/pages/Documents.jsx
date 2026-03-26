@@ -78,7 +78,7 @@ export default function DocumentsPage() {
         const res = await fetchUsers();
         setUsers(res || []);
       } catch (err) {
-        console.error("Failed to fetch users", err);
+        toast.err("Failed to fetch users", err);
       }
     };
     loadUsers();
@@ -107,7 +107,7 @@ export default function DocumentsPage() {
         current_page: data.current_page || prev.current_page,
       }));
     } catch (err) {
-      console.error("Failed to fetch documents", err);
+      toast.err("Failed to fetch documents", err);
     }
   }, [
     getDocs,

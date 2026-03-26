@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../services/auth/useAuth";
 import TagSelector from "./TagSelector"; // your reusable component
+import { toast } from "react-hot-toast";
 
 const CreateAgentModal = ({ isOpen, onClose, onAgentCreated }) => {
   const { getDocs, createAgent, getTags, createTag } = useAuth(); // include tags functions
@@ -64,6 +65,7 @@ const CreateAgentModal = ({ isOpen, onClose, onAgentCreated }) => {
 
       const data = await createAgent(payload);
       onAgentCreated(data); // refresh agents table
+      toast.success(`Agent ${payload.name} Created`)
       resetForm();
       onClose();
     } catch (err) {

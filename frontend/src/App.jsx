@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import { AuthProvider } from "./services/auth/AuthProvider"
 import ProtectedRoute from "./services/routes/ProtectedRoute"
-
+import { Toaster } from "react-hot-toast"
 import MainLayout from "./components/layout/MainLayout"
 
 import OrgEntry from "./pages/OrgEntry"
@@ -18,6 +18,33 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <Toaster
+          position="top-right"
+          toastOptions={{
+            duration: 3000,
+            style: {
+              background: "#ffffff",
+              color: "#1f2937",
+              border: "1px solid #e5e7eb",
+              borderRadius: "12px",
+              padding: "14px 16px",
+              boxShadow: "0 8px 24px rgba(0,0,0,0.08)",
+              fontSize: "14px",
+              fontWeight: "500",
+            },
+            success: {
+              style: {
+                borderLeft: "5px solid #10b981",
+              },
+            },
+            error: {
+              style: {
+                borderLeft: "5px solid #ef4444",
+              },
+            },
+          }}
+        />
+        
         <Routes>
 
           {/* Public Routes */}
@@ -47,9 +74,3 @@ export default function App() {
     </BrowserRouter>
   )
 }
-
-<Route path="/:org"
-  
->
-  <Route path="agents" element={<AgentsPage />} />
-</Route>

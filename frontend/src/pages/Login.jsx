@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { useAuth } from "../services/auth/useAuth"
+import { toast } from "react-hot-toast"
 
 export default function Login() {
   const { org } = useParams()
@@ -15,9 +16,11 @@ export default function Login() {
     e.preventDefault()
     try {
       await login({ username, password, org })
+      toast.success("Login Successful !!")
       navigate(`/${org}/dashboard`)
     } catch {
       setError("Invalid credentials")
+      toast.error("Login Failed")
     }
   }
 

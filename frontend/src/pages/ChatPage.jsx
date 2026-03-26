@@ -73,7 +73,7 @@ export default function ChatPage() {
     let activeChatId = chatId;
     const wordCount = input.trim().split(/\s+/).length
     if (wordCount>250){
-      alert("Message cannot exceed 250 words");
+      toast.info("Message cannot exceed 250 words");
       return;
     }
 
@@ -84,7 +84,7 @@ export default function ChatPage() {
         activeChatId = chat.id;
         navigate(`/${org}/agents/${agentId}/${activeChatId}`);
       } catch (err) {
-        console.error(err);
+        toast.err(err);
         return;
       }
     }
@@ -99,7 +99,7 @@ export default function ChatPage() {
       const res = await sendMessage(activeChatId, input);
       streamBotMessage(res.answer); // `res.answer` now has Markdown content
     } catch (err) {
-      console.error(err);
+      toast.error(err);
       setShowTypingBubble(false);
     } finally {
       setLoading(false);

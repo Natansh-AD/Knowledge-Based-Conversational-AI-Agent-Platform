@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "./../styles/DocumentUploadModal.css";
 import { useAuth } from "../services/auth/useAuth";
+import { toast } from "react-hot-toast";
 
 const DocumentUploadModal = ({ onClose }) => {
   const [file, setFile] = useState(null);
@@ -18,18 +19,18 @@ const DocumentUploadModal = ({ onClose }) => {
     e.preventDefault();
 
     if (!file) {
-      alert("Please select a file first!");
+      toast.info("Please select a file first!");
       return;
     }
 
     try {
       setLoading(true);
       await uploadDoc(file);
-      alert("File uploaded successfully!");
+      toast.success("File uploaded successfully!");
       onClose();
     } catch (err) {
       console.error(err);
-      alert(err.message || "Upload failed");
+      toast.err(err.message || "Upload failed");
     } finally {
       setLoading(false);
     }

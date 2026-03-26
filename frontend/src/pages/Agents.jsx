@@ -6,6 +6,7 @@ import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 import { useTitle } from "../components/layout/TitleContext";
 import usePageTitle from "../components/layout/usePageTitle";
 import MultiSelectDropdown from "../components/MultiSelectDropdown";
+import { toast } from "react-hot-toast";
 
 const AgentsPage = () => {
   usePageTitle("Agents");
@@ -80,7 +81,7 @@ const AgentsPage = () => {
       const data = await getTags();
       setTags(data);
     } catch (err) {
-      console.error(err);
+      toast.err(err);
     }
   };
 
@@ -97,7 +98,7 @@ const AgentsPage = () => {
     setPagination((prev) => ({ ...prev, page: 1 }));
   };
 
-  // ✅ FIX 3: toggle tag (multi-select)
+  // FIX 3: toggle tag (multi-select)
   const handleTagClick = (tagId) => {
     const exists = filters.tag.includes(tagId);
 
@@ -119,6 +120,7 @@ const AgentsPage = () => {
   const handleDelete = async (id) => {
     if (!window.confirm("Delete this agent?")) return;
     await deleteAgent(id);
+    toast.success("Agent deleted successfully")
     fetchAgents();
   };
 
@@ -148,7 +150,7 @@ const AgentsPage = () => {
           <MultiSelectDropdown
             options={tags}
             labelKey="name"
-            valueKey="id"   // 👈 IMPORTANT
+            valueKey="id"
             selectedValues={filters.tag}
             onChange={(values) => {
               setFilters({ ...filters, tag: values });
