@@ -189,6 +189,69 @@ export function AuthProvider({ children }) {
     }
   }
 
+  async function downloadDoc(documentId) {
+    try {
+      const params = new URLSearchParams({
+        document_id: documentId,
+      });
+
+      const res = await api.get(
+        `/${tenant}/api/docs/download/?${params.toString()}`
+      );
+
+      const { download_url, filename } = res.data;
+
+      // Option 1: open in new tab (simplest)
+      window.open(download_url, "_blank");
+
+      // Option 2 (optional): force download with filename
+      // const link = document.createElement("a");
+      // link.href = download_url;
+      // link.setAttribute("download", filename);
+      // document.body.appendChild(link);
+      // link.click();
+      // link.remove();
+
+      return res.data;
+    } catch (err) {
+      throw new Error(
+        err.response?.data?.error || "Failed to download document"
+      );
+    }
+  }
+
+// -------------------- Update Document --------------------
+  async function updateDoc(formData) {
+    try {
+      const res = await api.patch(
+        `/${tenant}/api/docs/update/`,
+        formData
+      );
+
+      return res.data;
+    } catch (err) {
+      throw new Error(
+        err.response?.data?.error || "Failed to update document"
+      );
+    }
+  }
+
+  // -------------------- Delete Document --------------------
+  async function deleteDoc(documentId) {
+    try {
+      // Send document_id as query param
+      const params = new URLSearchParams({ document_id: documentId });
+
+      const res = await api.delete(`/${tenant}/api/docs/delete/?${params.toString()}`);
+
+      return res.data;
+    } catch (err) {
+      throw new Error(
+        err.response?.data?.error || "Failed to delete document"
+      );
+    }
+  }
+
   async function uploadDoc(file){
     try{
       const formData = new FormData()
@@ -364,6 +427,9 @@ export function AuthProvider({ children }) {
         forgotPassword,
         resetPassword,
         getDocs,
+        downloadDoc,
+        updateDoc,
+        deleteDoc,
         uploadDoc,
         getAgents,
         getTags,

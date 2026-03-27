@@ -4,7 +4,8 @@ import DocumentUploadModal from "../components/DocumentUploadModal";
 import MultiSelectDropdown from "../components/MultiSelectDropdown";
 import { useTitle } from "../components/layout/TitleContext";
 import { useOutletContext } from "react-router-dom";
-
+import DocumentUpdateModal
+ from "../components/DocumentUpdateModal";
 // Simple debounce helper
 const debounce = (func, delay = 300) => {
   let timer;
@@ -15,14 +16,17 @@ const debounce = (func, delay = 300) => {
 };
 
 export default function DocumentsPage() {
-  const { getDocs, fetchUsers } = useAuth();
+  const { getDocs, fetchUsers, downloadDoc, updateDoc} = useAuth();
   const { setTitle } = useTitle();
   const { setTopBarActions } = useOutletContext() || {};
 
   const todayDateStr = new Date().toISOString().split("T")[0];
-
+  const [downloadingId, setDownloadingId] = useState(null); 
   const [documents, setDocuments] = useState([]);
   const [users, setUsers] = useState([]);
+
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [selectedDoc, setSelectedDoc] = useState(null);
 
   const [filters, setFilters] = useState({
     search: "",
@@ -135,6 +139,27 @@ export default function DocumentsPage() {
     setPagination(prev => ({ ...prev, page: 1 }));
   };
 
+  const handleDelete = async (id) => {
+    try {
+      // TODO: call delete API
+      console.log("Delete doc:", id);
+    } catch (err) {
+      toast.err("Failed to delete document", err);
+    }
+  };
+
+  const handleUpdate = (doc) => {
+    // TODO: open edit modal
+    setSelectedDoc(doc);
+    setIsUpdateModalOpen(true);
+    console.log("Update doc:", doc);
+  };
+
+  const closeUpdateModal = () => {
+  setIsUpdateModalOpen(false);
+  setSelectedDoc(null);
+};
+
   const debouncedSearchChange = debounce(value => {
     setFilters(prev => ({ ...prev, search: value }));
     setPagination(prev => ({ ...prev, page: 1 }));
@@ -145,6 +170,15 @@ export default function DocumentsPage() {
 
   const openUploadModal = () => setIsUploadModalOpen(true);
   const closeUploadModal = () => setIsUploadModalOpen(false);
+
+  const formatFileSize = (bytes) => {
+    if (!bytes) return "—";
+
+    const sizes = ["Bytes", "KB", "MB", "GB", "TB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+
+    return `${(bytes / Math.pow(1024, i)).toFixed(2)} ${sizes[i]}`;
+  };
 
   // -----------------------------
   // JSX
@@ -258,11 +292,13 @@ export default function DocumentsPage() {
               {[
                 "Name",
                 "File Type",
+                "File Size",
                 "Status",
                 "Version",
                 "Created At",
                 "Uploaded By",
                 "Last Modified",
+                "Actions",
               ].map(col => (
                 <th
                   key={col}
@@ -277,7 +313,7 @@ export default function DocumentsPage() {
           <tbody className="divide-y divide-gray-200">
             {documents.length === 0 ? (
               <tr>
-                <td colSpan="7" className="text-center py-6 text-gray-500">
+                <td colSpan="9" className="text-center py-6 text-gray-500">
                   No documents found.
                 </td>
               </tr>
@@ -285,23 +321,66 @@ export default function DocumentsPage() {
               documents.map(doc => (
                 <tr key={doc.id}>
                   <td className="px-4 py-2 whitespace-nowrap">{doc.name}</td>
+
                   <td className="px-4 py-2 whitespace-nowrap">
                     {fileTypeOptions.find(f => f.id === doc.file_type)?.name ||
                       doc.file_type}
                   </td>
+
+                  <td className="px-4 py-2 whitespace-nowrap">
+                    {formatFileSize(doc.file_size)}
+                  </td>
+
                   <td className="px-4 py-2 whitespace-nowrap capitalize">
                     {doc.status}
                   </td>
+
                   <td className="px-4 py-2 whitespace-nowrap">{doc.version}</td>
+
                   <td className="px-4 py-2 whitespace-nowrap">
                     {new Date(doc.created_at).toLocaleString()}
                   </td>
+
                   <td className="px-4 py-2 whitespace-nowrap">
-                    {users.find(u => u.id === doc.uploaded_by)?.username ||
-                      "Unknown"}
+                    {users.find(u => u.id === doc.uploaded_by)?.username || "Unknown"}
                   </td>
+
                   <td className="px-4 py-2 whitespace-nowrap">
                     {new Date(doc.last_modified_at).toLocaleString()}
+                  </td>
+
+                  <td className="px-4 py-2 space-x-2">
+  
+                    {/* Download */}
+                    <button
+                      onClick={() => downloadDoc(doc.id)}
+                      disabled={doc.status !== "ready"}
+                      className={`text-sm ${
+                        doc.status === "ready"
+                          ? "text-green-600 hover:underline"
+                          : "text-gray-400 cursor-not-allowed"
+                      }`}
+                    >
+                      {/* ⬇️ */}
+                        Download
+                    </button>
+
+                    {/* Update */}
+                    <button
+                      onClick={() => handleUpdate(doc)}
+                      className="text-sm text-blue-600 hover:underline"
+                    >
+                      Update
+                    </button>
+
+                    {/* Delete */}
+                    {/* <button
+                      onClick={() => handleDelete(doc.id)}
+                      className="text-sm text-red-600 hover:underline"
+                    >
+                      🗑
+                    </button> */}
+
                   </td>
                 </tr>
               ))
@@ -329,6 +408,15 @@ export default function DocumentsPage() {
 
       {/* Upload Modal */}
       {isUploadModalOpen && <DocumentUploadModal onClose={closeUploadModal} />}
+
+      {/* Update Modal */}
+      {isUpdateModalOpen && (
+        <DocumentUpdateModal
+          doc={selectedDoc}
+          onClose={closeUpdateModal}
+          onSuccess={fetchDocuments}
+        />
+      )}
     </div>
   );
 }

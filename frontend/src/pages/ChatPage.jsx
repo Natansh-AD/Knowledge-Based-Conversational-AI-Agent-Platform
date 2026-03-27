@@ -19,6 +19,13 @@ export default function ChatPage() {
 
   const bottomRef = useRef(null);
 
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = "auto";
+    };
+  }, []);
+
   // Load messages if chat exists
   useEffect(() => {
     if (!chatId) {
@@ -107,10 +114,10 @@ export default function ChatPage() {
   };
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen overflow-hidden">
       {/* Sidebar is global, don't include here */}
 
-      <div className="flex flex-col flex-1">
+      <div className="flex flex-col flex-1 min-h-0">
 
         {/* Empty state */}
         {!chatId ? (
@@ -118,7 +125,7 @@ export default function ChatPage() {
             Start a new conversation
           </div>
         ) : (
-          <div className="flex-1 flex flex-col gap-2 overflow-y-auto p-5">
+          <div className="flex-1 flex flex-col gap-2 overflow-y-auto p-5 min-h-0">
             {messages.map((msg, index) => (
               <div
                 key={index}

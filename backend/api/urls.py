@@ -6,7 +6,7 @@ from .views import (
     ApiRootView,
     MeView
 )
-from documents.views import get_upload_url, getAllDocuments, upload_document
+from documents.views import get_download_url, getAllDocuments, upload_document, update_document, delete_document
 from django.urls import include
 
 urlpatterns = [
@@ -19,6 +19,9 @@ urlpatterns = [
     # Document based paths
     path("upload/", upload_document, name="upload-document"),
     path("docs/",getAllDocuments,name="all-docs"),
+    path("docs/download/",get_download_url, name='download-document'),
+    path("docs/update/",update_document, name='update-document'),
+    path("docs/delete/",delete_document, name='delete-document'),
 
     # Agent based paths
     path('agent/', include('agent.urls')),

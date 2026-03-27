@@ -6,7 +6,7 @@ from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from django_tenants.utils import tenant_context
-from .models import Document
+from .models import Document, DocumentChunk
 from .serializer import DocumentSerializer
 from rest_framework import status
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
@@ -155,6 +155,7 @@ def upload_document(request,tenant_slug=None):
         name=file.name,
         s3_key=key,
         file_type=file.content_type,
+        file_size=file.size,
         uploaded_by=request.user,
         status="uploaded"
     )
@@ -164,3 +165,128 @@ def upload_document(request,tenant_slug=None):
         "message": "File uploaded successfully",
         "document_id": document.id
     })
+
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def get_download_url(request, tenant_slug=None):
+    document_id = request.GET.get("document_id")
+    print(document_id)
+    try:
+        document = Document.objects.get(id=document_id)
+    except Document.DoesNotExist:
+        return Response({"error": "Document not found"}, status=404)
+    
+    if document.status != "ready":
+        return Response({"error" : "Document not ready to be downloaded"}, status=400)
+
+    s3_client = S3Client()
+    download_url = s3_client.generate_download_url(document.s3_key)
+
+    return Response({
+        "download_url": download_url,
+        "filename": document.name
+    })
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def delete_document(request, tenant_slug=None):
+    document_id = request.GET.get("document_id")
+
+    if not document_id:
+        return Response({"error": "document_id required"}, status=400)
+
+    try:
+        document = Document.objects.get(id=int(document_id))
+    except Document.DoesNotExist:
+        return Response({"error": "Document not found"}, status=404)
+
+    # Optional: check ownership or permission
+    if document.uploaded_by != request.user:
+        return Response({"error": "Unauthorized"}, status=403)
+
+    # Delete from S3
+    # s3_client = S3Client()
+    # try:
+    #     s3_client.client.delete_object(Bucket=s3_client.bucket, Key=document.s3_key)
+    # except Exception as e:
+    #     # Log error, but continue to delete DB record
+    #     print(f"S3 deletion error: {e}")
+
+    # Delete from DB
+    document.delete()
+    DocumentChunk.objects.filter(document_id=document_id).delete()
+
+    return Response({"message": "Document and its chunks deleted successfully"}, status=200)
+
+@api_view(["PATCH"])
+@permission_classes([IsAuthenticated])
+def update_document(request, tenant_slug=None):
+    """
+    Update document metadata or replace file.
+    Request body:
+        - document_id (required)
+        - name (optional)
+        - status (optional)
+        - file (optional) -> new file to replace existing
+    """
+    document_id = request.data.get("document_id")
+    if not document_id:
+        return Response({"error": "document_id required"}, status=400)
+
+    try:
+        document = Document.objects.get(id=int(document_id))
+    except Document.DoesNotExist:
+        return Response({"error": "Document not found"}, status=404)
+
+    if document.uploaded_by != request.user:
+        return Response({"error": "Unauthorized"}, status=403)
+
+    s3_client = S3Client()
+
+    # --- Replace file if provided ---
+    new_file = request.FILES.get("file")
+    if new_file:
+        # Delete old file from S3
+        try:
+            s3_client.client.delete_object(Bucket=s3_client.bucket, Key=document.s3_key)
+        except Exception as e:
+            print(f"S3 deletion error: {e}")
+
+        # Upload new file
+        tenant = request.tenant
+        new_key = tenant_document_path(tenant.id, new_file.name)
+        s3_client.upload_file(new_file, new_key, new_file.content_type)
+
+        # Update document fields
+        document.s3_key = new_key
+        document.file_type = new_file.content_type
+        document.file_size = new_file.size
+        document.name = new_file.name  # optionally update name to match file
+
+        # Optionally reset status if needed
+        document.status = "uploaded"
+        DocumentChunk.objects.filter(document_id=document_id).delete()
+
+        # Optionally trigger background processing again
+        process_document.delay(document.id, tenant.schema_name)
+
+    # --- Update metadata ---
+    name = request.data.get("name")
+    version = request.data.get("version")
+    print(request.data)
+    if name:
+        document.name = name
+
+    if version is not None:
+        try:
+            document.version = int(version)
+        except ValueError:
+            return Response({"error" : "Invalid version"}, status=status.HTTP_400_BAD_REQUEST)
+
+    document.save()
+
+    serializer = DocumentSerializer(document)
+    return Response(
+        {"message": "Document updated successfully", "document": serializer.data},
+        status=status.HTTP_200_OK
+    )

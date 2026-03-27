@@ -58,3 +58,16 @@ class S3Client:
         )
 
         return local_path
+    
+    def generate_download_url(self, key):
+        try:
+            return self.client.generate_presigned_url(
+                "get_object",
+                Params={
+                    "Bucket": self.bucket,
+                    "Key": key
+                },
+                ExpiresIn=settings.S3_PRESIGNED_URL_EXPIRY
+            )
+        except ClientError as e:
+            raise Exception(f"Could not generate download URL: {str(e)}")

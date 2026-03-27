@@ -7,6 +7,7 @@ class Document(models.Model):
     name = models.CharField(max_length=255)
     s3_key = models.CharField(max_length=500)
     file_type = models.CharField(max_length=50)
+    file_size = models.BigIntegerField(default=0)
 
     status = models.CharField(
         choices=[('uploaded', 'Uploaded'), ('processing', 'Processing'), ('ready', 'Ready'), ('failed', 'Failed')],
