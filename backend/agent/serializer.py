@@ -12,14 +12,17 @@ class AgentSerializer(serializers.ModelSerializer):
         queryset=Tag.objects.all(),
         many=True
     )
-    tags_detail = TagSerializer(source='tags', many=True, read_only=True)
-    document_names = serializers.SerializerMethodField()
+    tags_detail = TagSerializer(source="tags", many=True, read_only=True)
+
     documents = serializers.PrimaryKeyRelatedField(
         queryset=Document.objects.all(),
         write_only=True,
         many=True,
         required=False
     )
+
+    documents_detail = serializers.SerializerMethodField()
+    document_names = serializers.SerializerMethodField()
     created_by = serializers.StringRelatedField(read_only=True)
 
     class Meta:
@@ -29,12 +32,17 @@ class AgentSerializer(serializers.ModelSerializer):
             "name",
             "description",
             "documents",
+            "documents_detail",
             "document_names",
             "tags",
+            "tags_detail",
             "created_by",
             "is_active",
             "system_prompt",
-            "tags_detail"
         ]
+
     def get_document_names(self, obj):
         return [doc.name for doc in obj.documents.all()]
+
+    def get_documents_detail(self, obj):
+        return [{"id": doc.id, "name": doc.name} for doc in obj.documents.all()]

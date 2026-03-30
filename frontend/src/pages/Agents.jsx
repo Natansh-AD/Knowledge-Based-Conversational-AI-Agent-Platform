@@ -6,7 +6,7 @@ import { useNavigate, useOutletContext, useParams } from "react-router-dom";
 import { useTitle } from "../components/layout/TitleContext";
 import usePageTitle from "../components/layout/usePageTitle";
 import MultiSelectDropdown from "../components/MultiSelectDropdown";
-import { toast } from "react-hot-toast";
+import toast from "react-hot-toast";
 
 const AgentsPage = () => {
   usePageTitle("Agents");

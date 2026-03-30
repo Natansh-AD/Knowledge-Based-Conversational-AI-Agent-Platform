@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
 import "./../styles/DocumentUploadModal.css";
 import { useAuth } from "../services/auth/useAuth";
-import TagSelector from "./TagSelector"; // assuming you created this component
+import TagSelector from "./TagSelector";
+import MultiSelectDropdown from "./MultiSelectDropdown";
+import toast from "react-hot-toast";
 
 const EditAgentModal = ({ agent, onClose, onAgentUpdated }) => {
-  const { updateAgent, getTags, createTag } = useAuth();
+  const { updateAgent, getTags, createTag, getDocs } = useAuth();
 
   const [form, setForm] = useState({
     name: agent.name || "",
@@ -13,7 +15,31 @@ const EditAgentModal = ({ agent, onClose, onAgentUpdated }) => {
   });
 
   const [selectedTags, setSelectedTags] = useState(agent.tags_detail || []);
+
+  const [allDocuments, setAllDocuments] = useState([]);
+  const [selectedDocuments, setSelectedDocuments] = useState(
+    agent.documents_detail?.map((d) => d.id) || []
+  );
+
   const [loading, setLoading] = useState(false);
+
+  // Fetch documents
+  useEffect(() => {
+    const fetchDocs = async () => {
+      try {
+        const docs = await getDocs();
+        console.log("Fetched documents:", docs);
+        setAllDocuments(docs.results || []);
+        // TODO
+        // Currently fetching only first page, change this to async search in backend and then multi select
+        // Will create new page for editing agent, so not a big deal for now
+      } catch (err) {
+        console.error("Failed to fetch documents", err);
+      }
+    };
+
+    fetchDocs();
+  }, []);
 
   const handleChange = (e) => {
     setForm({
@@ -30,7 +56,8 @@ const EditAgentModal = ({ agent, onClose, onAgentUpdated }) => {
 
       const payload = {
         ...form,
-        tags: selectedTags.map((t) => t.id), // send only IDs
+        tags: selectedTags.map((t) => t.id),
+        documents: selectedDocuments, // ✅ important
       };
 
       await updateAgent(agent.id, payload);
@@ -40,7 +67,7 @@ const EditAgentModal = ({ agent, onClose, onAgentUpdated }) => {
       onClose();
     } catch (err) {
       console.error(err);
-      toast.err(err.message || "Update failed");
+      toast.error(err.message || "Update failed");
     } finally {
       setLoading(false);
     }
@@ -85,12 +112,22 @@ const EditAgentModal = ({ agent, onClose, onAgentUpdated }) => {
             placeholder="System Prompt"
           />
 
-          {/* Tag Selector */}
+          {/* Tags */}
           <TagSelector
             selectedTags={selectedTags}
             setSelectedTags={setSelectedTags}
-            getTags={getTags}       // fetch existing tags
-            createTag={createTag}   // create new tags dynamically
+            getTags={getTags}
+            createTag={createTag}
+          />
+
+          {/* Documents */}
+          <MultiSelectDropdown
+            options={allDocuments}
+            selectedValues={selectedDocuments}
+            onChange={setSelectedDocuments}
+            placeholder="Select Documents"
+            labelKey="name"
+            valueKey="id"
           />
 
           <button type="submit" className="submit-button" disabled={loading}>
