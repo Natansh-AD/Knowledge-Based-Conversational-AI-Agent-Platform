@@ -1,7 +1,8 @@
 # rag.processors.embeddings.py
 from sentence_transformers import SentenceTransformer
 from documents.models import DocumentChunk
-model = SentenceTransformer("all-MiniLM-L6-v2")
+# model = SentenceTransformer("all-MiniLM-L6-v2")
+model = SentenceTransformer("all-mpnet-base-v2")
 
 BLOCKED_PATTERNS = [
     "write code",

@@ -15,7 +15,7 @@ class CreateChatSession(APIView):
 
     def post(self, request, tenant_slug=''):
         agent_id = request.data.get("agent_id")
-        print(request.data)
+        # print(request.data)
         if not agent_id:
             return Response({"error": "agent_id is required"}, status=400)
 

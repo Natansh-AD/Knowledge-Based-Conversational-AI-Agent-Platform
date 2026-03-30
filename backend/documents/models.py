@@ -29,7 +29,10 @@ class DocumentChunk(models.Model):
     text = models.TextField()
     embedding = VectorField(
         # using all-MiniLM-L6-v2
-        dimensions=384,
+        # dimensions=384,
+
+        # using all-mpnet-base-v2
+        dimensions=768,
         null=True
     )
     meta_data = models.JSONField(null=True, blank=True)
