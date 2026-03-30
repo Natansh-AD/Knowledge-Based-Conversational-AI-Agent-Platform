@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../services/auth/useAuth";
-import TagSelector from "./TagSelector"; // your reusable component
+import TagSelector from "./TagSelector";
 import { toast } from "react-hot-toast";
+import MultiSelectDropdown from "./MultiSelectDropdown";
 
 const CreateAgentModal = ({ isOpen, onClose, onAgentCreated }) => {
   const { getDocs, createAgent, getTags, createTag } = useAuth(); // include tags functions
@@ -9,7 +10,7 @@ const CreateAgentModal = ({ isOpen, onClose, onAgentCreated }) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [systemPrompt, setSystemPrompt] = useState("");
-  const [documentId, setDocumentId] = useState(null);
+  const [selectedDocuments, setSelectedDocuments] = useState([]);
 
   const [documents, setDocuments] = useState([]);
   const [loadingDocs, setLoadingDocs] = useState(false);
@@ -21,6 +22,8 @@ const CreateAgentModal = ({ isOpen, onClose, onAgentCreated }) => {
 
   // Tags
   const [selectedTags, setSelectedTags] = useState([]);
+
+  const [creating, setCreating] = useState(false);
 
   // Fetch documents when modal opens or search/page changes
   useEffect(() => {
@@ -45,12 +48,24 @@ const CreateAgentModal = ({ isOpen, onClose, onAgentCreated }) => {
     }
   };
 
+  const mergedOptions = React.useMemo(() => {
+    const merged = [...documents];
+
+    selectedDocuments.forEach((id) => {
+      if (!merged.find((d) => d.id === id)) {
+        merged.push({ id, name: `Document ${id}` });
+      }
+    });
+
+    return merged;
+  }, [documents, selectedDocuments]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
 
-    if (!documentId) {
-      setError("Please select a document.");
+    if (selectedDocuments.length === 0) {
+      setError("Please select at least one document.");
       return;
     }
 
@@ -59,17 +74,21 @@ const CreateAgentModal = ({ isOpen, onClose, onAgentCreated }) => {
         name,
         description,
         system_prompt: systemPrompt,
-        document: documentId,
-        tags: selectedTags.map((t) => t.id), // send only IDs
+        documents: selectedDocuments,
+        tags: selectedTags.map((t) => t.id),
       };
-
+      setCreating(true);
       const data = await createAgent(payload);
       onAgentCreated(data); // refresh agents table
       toast.success(`Agent ${payload.name} Created`)
       resetForm();
       onClose();
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.detail || err.message);
+      toast.err(err.response?.data?.detail || err.message);
+    }
+    finally{
+      setCreating(false);
     }
   };
 
@@ -77,7 +96,7 @@ const CreateAgentModal = ({ isOpen, onClose, onAgentCreated }) => {
     setName("");
     setDescription("");
     setSystemPrompt("");
-    setDocumentId(null);
+    setSelectedDocuments([]);
     setSearch("");
     setPage(1);
     setError(null);
@@ -153,19 +172,14 @@ const CreateAgentModal = ({ isOpen, onClose, onAgentCreated }) => {
             {loadingDocs ? (
               <p>Loading documents...</p>
             ) : (
-              <select
-                value={documentId || ""}
-                onChange={(e) => setDocumentId(e.target.value)}
-                required
-                style={{ padding: "10px", borderRadius: "6px", border: "1px solid #ddd", width: "100%", marginBottom: "10px" }}
-              >
-                <option value="">-- Select a Document --</option>
-                {documents.map((doc) => (
-                  <option key={doc.id} value={doc.id}>
-                    {doc.name}
-                  </option>
-                ))}
-              </select>
+              <MultiSelectDropdown
+                options={mergedOptions}
+                selectedValues={selectedDocuments}
+                onChange={setSelectedDocuments}
+                placeholder="Select documents..."
+                labelKey="name"
+                valueKey="id"
+              />
             )}
 
             {/* Pagination */}
@@ -180,8 +194,8 @@ const CreateAgentModal = ({ isOpen, onClose, onAgentCreated }) => {
             </div>
           </div>
 
-          <button type="submit" className="submit-button">
-            Create Agent
+          <button type="submit" className="submit-button" disabled={creating}>
+            {creating ? "Creating..." : "Create Agent"}
           </button>
         </form>
       </div>

@@ -13,10 +13,10 @@ class Agent(models.Model):
     description = models.TextField(blank=True)
     system_prompt = models.TextField()
 
-    document = models.OneToOneField(
+    documents = models.ManyToManyField(
         "documents.Document",
         related_name="agents",
-        on_delete=models.CASCADE
+        blank=True
     )
 
     created_at = models.DateTimeField(auto_now_add=True)

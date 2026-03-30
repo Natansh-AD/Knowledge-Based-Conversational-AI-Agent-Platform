@@ -201,7 +201,9 @@ const AgentsPage = () => {
                 <tr key={agent.id}>
                   <td className="px-4 py-2">{agent.name}</td>
                   <td className="px-4 py-2">{agent.description}</td>
-                  <td className="px-4 py-2">{agent.document_name}</td>
+                  <td className="px-4 py-2">
+                    {agent.document_names?.join(", ")}
+                  </td>
 
                   <td className="px-4 py-2 flex flex-wrap gap-1">
                     {agent.tags_detail?.map((tag) => (

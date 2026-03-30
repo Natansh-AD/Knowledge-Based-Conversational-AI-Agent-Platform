@@ -38,3 +38,6 @@ class DocumentChunk(models.Model):
     class Meta:
         ordering = ["chunk_index"]
         unique_together = ["document", "chunk_index"]
+        indexes = [
+            models.Index(fields=["document"])
+        ]

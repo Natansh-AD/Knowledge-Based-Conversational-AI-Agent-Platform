@@ -30,10 +30,14 @@ def generate_agent_answer(agent_id, question, history):
     chunks = retrieve_chunks(question, agent)
 
     # If similarity gate fails
-    if chunks is None:
-        return "I cannot find relevant information in the documents"
+    # if chunks is None:
+    #     return "I cannot find relevant information in the documents"
 
-    context = build_context(chunks)
+    if chunks is None:
+        context=""
+    else:
+        context = build_context(chunks)
+    # print(context)
 
     provider = GeminiProvider()
 
@@ -43,8 +47,7 @@ def generate_agent_answer(agent_id, question, history):
 
         Answer the question based ONLY on the provided context.
 
-        If the context does not contain the answer, say:
-        "I cannot find this information in the documents."
+        If the context does not contain the answer, answer politely how can you help as an agent to user and ask if he needs to give more specific question.
 
         Question: {question}
         """

@@ -3,7 +3,7 @@ import Nprogress from "nprogress"
 import "nprogress/nprogress.css"
 
 export const api = axios.create({
-  baseURL: "http://localhost:8000",
+  baseURL: "https://59d5rkf3-8000.inc1.devtunnels.ms",
   withCredentials: true,
 })
 
