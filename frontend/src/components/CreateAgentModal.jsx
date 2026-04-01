@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../services/auth/useAuth";
 import TagSelector from "./TagSelector";
-import { toast } from "react-hot-toast";
+import toast from "react-hot-toast";
 import MultiSelectDropdown from "./MultiSelectDropdown";
 
 const CreateAgentModal = ({ isOpen, onClose, onAgentCreated }) => {
@@ -85,7 +85,7 @@ const CreateAgentModal = ({ isOpen, onClose, onAgentCreated }) => {
       onClose();
     } catch (err) {
       setError(err.response?.data?.detail || err.message);
-      toast.err(err.response?.data?.detail || err.message);
+      toast.error(err.response?.data?.detail || err.message);
     }
     finally{
       setCreating(false);

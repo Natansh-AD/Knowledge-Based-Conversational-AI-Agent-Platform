@@ -27,7 +27,7 @@ export default function InviteModal({ close }) {
         close()
       }, 1500)
     } catch (err) {
-      toast.err(err.message)
+      toast.error(err.message)
     } finally {
       setLoading(false)
     }

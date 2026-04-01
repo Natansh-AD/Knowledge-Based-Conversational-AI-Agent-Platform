@@ -19,6 +19,8 @@ class Document(models.Model):
     uploaded_by = models.ForeignKey(User, on_delete=models.CASCADE)
     last_modified_at = models.DateTimeField(auto_now=True)
 
+    accessible_by = models.ManyToManyField(User, related_name="accessible_documents", blank=True)
+
 class DocumentChunk(models.Model):
     document = models.ForeignKey(
         Document,

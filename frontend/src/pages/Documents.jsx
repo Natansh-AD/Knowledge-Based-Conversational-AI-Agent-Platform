@@ -4,8 +4,8 @@ import DocumentUploadModal from "../components/DocumentUploadModal";
 import MultiSelectDropdown from "../components/MultiSelectDropdown";
 import { useTitle } from "../components/layout/TitleContext";
 import { useOutletContext } from "react-router-dom";
-import DocumentUpdateModal
- from "../components/DocumentUpdateModal";
+import DocumentUpdateModal from "../components/DocumentUpdateModal";
+import toast from "react-hot-toast";
 // Simple debounce helper
 const debounce = (func, delay = 300) => {
   let timer;
@@ -16,7 +16,7 @@ const debounce = (func, delay = 300) => {
 };
 
 export default function DocumentsPage() {
-  const { getDocs, fetchUsers, downloadDoc, updateDoc} = useAuth();
+  const { getDocs, fetchUsers, downloadDoc, updateDoc, user} = useAuth();
   const { setTitle } = useTitle();
   const { setTopBarActions } = useOutletContext() || {};
 
@@ -24,6 +24,7 @@ export default function DocumentsPage() {
   const [downloadingId, setDownloadingId] = useState(null); 
   const [documents, setDocuments] = useState([]);
   const [users, setUsers] = useState([]);
+
 
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [selectedDoc, setSelectedDoc] = useState(null);
@@ -82,7 +83,7 @@ export default function DocumentsPage() {
         const res = await fetchUsers();
         setUsers(res || []);
       } catch (err) {
-        toast.err("Failed to fetch users", err);
+        toast.error("Failed to fetch users", err);
       }
     };
     loadUsers();
@@ -111,7 +112,7 @@ export default function DocumentsPage() {
         current_page: data.current_page || prev.current_page,
       }));
     } catch (err) {
-      toast.err("Failed to fetch documents", err);
+      toast.error("Failed to fetch documents", err);
     }
   }, [
     getDocs,
@@ -144,12 +145,15 @@ export default function DocumentsPage() {
       // TODO: call delete API
       console.log("Delete doc:", id);
     } catch (err) {
-      toast.err("Failed to delete document", err);
+      toast.error("Failed to delete document", err);
     }
   };
 
   const handleUpdate = (doc) => {
-    // TODO: open edit modal
+    if(doc.uploaded_by != user.id){
+      toast.error("Only owner can update the document");
+      return;
+    }
     setSelectedDoc(doc);
     setIsUpdateModalOpen(true);
     console.log("Update doc:", doc);

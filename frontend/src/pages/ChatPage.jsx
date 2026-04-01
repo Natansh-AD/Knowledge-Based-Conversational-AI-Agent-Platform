@@ -91,7 +91,7 @@ export default function ChatPage() {
         activeChatId = chat.id;
         navigate(`/${org}/agents/${agentId}/${activeChatId}`);
       } catch (err) {
-        toast.err(err);
+        toast.error(err);
         return;
       }
     }

@@ -26,7 +26,7 @@ export default function EditProfileModal({ user, close }) {
       toast.success("User Details updated")
       close()
     } catch (err) {
-      toast.err(err.message)
+      toast.error(err.message)
     }
   }
 

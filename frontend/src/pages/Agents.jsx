@@ -81,7 +81,7 @@ const AgentsPage = () => {
       const data = await getTags();
       setTags(data);
     } catch (err) {
-      toast.err(err);
+      toast.error(err);
     }
   };
 

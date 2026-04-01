@@ -52,7 +52,13 @@ def getAllDocuments(request, tenant_slug=None):
     Ordering:
         - order_by
     """
-    documents = Document.objects.all()
+    # documents = Document.objects.all()
+    documents = request.user.accessible_documents.all()
+    documents |= Document.objects.filter(uploaded_by=request.user)
+    documents = documents.distinct()
+
+    if request.user.role == 1 :
+        documents = Document.objects.all()
 
     # Filters
     search = request.GET.get("search")

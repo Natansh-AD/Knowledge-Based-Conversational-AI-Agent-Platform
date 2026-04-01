@@ -142,11 +142,11 @@ REST_FRAMEWORK = {
 }
 
 CORS_ALLOWED_ORIGINS = [
-    "https://59d5rkf3-5173.inc1.devtunnels.ms",
+    "http://localhost:5173",
 ]
 CORS_ALLOW_CREDENTIALS = True
 CSRF_TRUSTED_ORIGINS = [
-    "https://59d5rkf3-5173.inc1.devtunnels.ms",
+    "http://localhost:5173",
 ]
 
 
@@ -219,3 +219,12 @@ MEDIA_PATH = '/tmp'
 
 # GEMINI Configuration
 GEMINI_API_KEY = config("GEMINI_API_KEY")
+
+# HUGGING FACE LOGIN
+from huggingface_hub import login
+import os
+
+HF_TOKEN = os.getenv("HF_TOKEN")
+
+if HF_TOKEN:
+    login(HF_TOKEN)
