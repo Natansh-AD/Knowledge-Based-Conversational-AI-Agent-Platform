@@ -16,7 +16,7 @@ export default function MainLayout() {
         <Sidebar collapsed={collapsed} />
 
         {/* Main Content */}
-        <div className="flex flex-col flex-1">
+        <div className="flex flex-col flex-1 min-h-0">
 
           {/* Top Header */}
           <div className="h-14 border-b flex items-center px-4 bg-white justify-between">
@@ -41,7 +41,7 @@ export default function MainLayout() {
           </div>
 
           {/* Page Content */}
-          <div className="flex-1 overflow-auto bg-gray-50">
+          <div className="flex-1 min-h-0 bg-gray-50">
             <Outlet context={{ setTopBarActions }} />
           </div>
 

@@ -12,7 +12,7 @@ export default function Dashboard() {
   usePageTitle("Dashboard")
   
   return (
-    <div className="dashboard-page flex-1 bg-white p-10 rounded-lg mx-auto max-w-7xl w-full flex flex-col">
+    <div className="dashboard-page flex-1 bg-white p-10 rounded-lg mx-auto max-w-7xl w-full flex flex-col h-full overflow-auto">
       <ProfileHeader user={user} />
       <AccountDetails user={user} />
       {user?.role === 1 && <UsersTable />}
