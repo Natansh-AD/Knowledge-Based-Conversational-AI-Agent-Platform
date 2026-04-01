@@ -326,6 +326,15 @@ export function AuthProvider({ children }) {
     }
   }
 
+  async function getAgentById(agentId) {
+    try {
+      const res = await api.get(`/${tenant}/api/agent/${agentId}/`);
+      return res.data;
+    } catch (err) {
+      throw new Error(err.response?.data?.detail || "Failed to fetch agent details");
+    }
+  }
+
   async function deleteAgent(agentId) {
     try {
       await api.delete(`/${tenant}/api/agent/${agentId}/`);
@@ -435,6 +444,7 @@ export function AuthProvider({ children }) {
         getTags,
         createTag,
         createAgent,
+        getAgentById,
         updateAgent,
         deleteAgent,
         createChat,

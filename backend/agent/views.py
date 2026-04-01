@@ -21,10 +21,7 @@ def ask_agent(request, agent_id, tenant_slug=''):
         "answer" : answer
     })
 
-
-class AgentView(APIView):
-    permission_classes = [IsAuthenticated]
-
+class AgentsView(APIView):
     def get(self, request, tenant_slug=''):
         agents = Agent.objects.all().order_by("-id")
 
@@ -62,8 +59,8 @@ class AgentView(APIView):
             "current_page": page_obj.number,
             "total_items": paginator.count
         })
-
-    # POST: create new agent
+    
+    # create new agent with POST request
     def post(self, request, tenant_slug=''):
         print(request.data)
         serializer = AgentSerializer(data=request.data)
@@ -71,6 +68,18 @@ class AgentView(APIView):
             serializer.save(created_by=request.user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class AgentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, agent_id=None, tenant_slug=''):
+        if agent_id:
+            agent = get_object_or_404(Agent, id=agent_id)
+            serializer = AgentSerializer(agent)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
     # PATCH: update agent
     def patch(self, request, agent_id, tenant_slug=''):

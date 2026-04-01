@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard"
 import Invite from "./pages/Invite"
 import Documents from "./pages/Documents"
 import AgentsPage from "./pages/Agents"
+import CreateEditAgentPage from "./pages/CreateAgent"
 import ChatPage from "./pages/ChatPage"
 
 export default function App() {
@@ -66,6 +67,8 @@ export default function App() {
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="docs" element={<Documents />} context={{ setTopBarActions: ()=> {}}}/>
             <Route path="agents" element={<AgentsPage />} context={{ setTopBarActions: ()=> {}}}/>
+            <Route path="agents/new" element={<CreateEditAgentPage />} context={{ setTopBarActions: ()=> {}}}/>
+            <Route path="agents/:agentId/edit" element={<CreateEditAgentPage />} context={{ setTopBarActions: ()=> {}}}/>
             <Route path="agents/:agentId/:chatId?" element={<ChatPage />} context={{ setTopBarActions: ()=> {}}}/>
           </Route>
 
