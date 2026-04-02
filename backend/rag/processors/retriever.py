@@ -5,9 +5,11 @@ from agent.models import Agent
 from rag.processors.embeddings import generate_embeddings
 from chat.models import ChatMessage
 from sentence_transformers import CrossEncoder
+from scipy.special import expit
 
-AVG_SIMILARITY_THRESHOLD = 0.2
-TOP_SIMILARITY_THRESHOLD = 0.4
+AVG_SIMILARITY_THRESHOLD = 0.3
+TOP_SIMILARITY_THRESHOLD = 0.6
+MIN_CHUNK_SCORE = 0.3
 reranker = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-12-v2')
 def retrieve_chunks(query, agent, top_k=5, rerank_top_n=20):
 
@@ -25,26 +27,75 @@ def retrieve_chunks(query, agent, top_k=5, rerank_top_n=20):
 
     results = list(results)
     if not results:
-        return False, []
+        return {
+            "status": "low",
+            "top_score": 0.0,
+            "avg_score": 0.0,
+            "chunks": []
+        }
     
     # Rerank with cross encoder
     pairs = [(query, c.text) for c in results]
     scores = reranker.predict(pairs)
+    norm_scores = expit(scores)  # Convert to 0-1 range
+
+    top_score = norm_scores.max() if len(norm_scores) else 0
+    avg_score = norm_scores.mean() if len(norm_scores) else 0
 
     # sort by reranker score descending
-    reranked_chunks = [chunk for _,chunk in sorted(zip(scores, results), reverse=True)]
+    # reranked_chunks = [chunk for _,chunk in sorted(zip(scores, results), reverse=True)]
 
-    top_score = scores.max() if len(scores) else 0
-    avg_score = scores.mean() if len(scores) else 0
+    if top_score > TOP_SIMILARITY_THRESHOLD:
+        status = "high"
+    elif avg_score < AVG_SIMILARITY_THRESHOLD:
+        status = "low"
+    else:
+        status = "partial"
 
-    context_found = not (top_score < TOP_SIMILARITY_THRESHOLD and avg_score < AVG_SIMILARITY_THRESHOLD)
-    return context_found,reranked_chunks[:top_k]
+    sorted_scores = sorted(norm_scores, reverse=True)
+
+    # wE CAN LOOK FOR AMIBIGUITY BY CHECKING SCORE GAP WHEN CHUKS ARE DISTRIBUTED AROUND THE TOPIC
+    # HERE IN CASE OF RECURSIVE CHUNKING, CHUNK SCORES CAN BE OVERLAPPING
+    # NEEDS TO DEPEND ON CHUNKING STRATEGY AND VECTOR DB PERFORMANCE
+
+    # if len(sorted_scores) > 1:
+    #     score_gap = sorted_scores[0] - sorted_scores[1]
+    # else:
+    #     score_gap = sorted_scores[0]
+
+    # if score_gap < 0.05:
+    #     status = "ambiguous"
+
+    scored_chunks = sorted(zip(norm_scores, results), key=lambda x: x[0], reverse=True)
+
+    reranked_chunks = [chunk for score, chunk in scored_chunks]
+    sorted_scores = [score for score, chunk in scored_chunks]
+
+    filtered_chunks = [
+        chunk for score, chunk in zip(norm_scores, reranked_chunks) 
+        if score >= MIN_CHUNK_SCORE
+    ]
+
+    if top_score > 0.7:
+        top_k = 3
+    elif top_score > 0.5:
+        top_k = 5
+    else:
+        top_k = 0
+
+    # context_found = not (top_score < TOP_SIMILARITY_THRESHOLD and avg_score < AVG_SIMILARITY_THRESHOLD)
+    return {
+        "status": status,
+        "top_score": float(top_score),
+        "avg_score": float(avg_score),
+        "chunks": filtered_chunks[:top_k]
+    }
 
 def get_history(chat):
     messages = ChatMessage.objects.filter(
         chat_session=chat
     ).order_by("created_at")
-    messages = messages[:4][::-1]
+    messages = messages[:6][::-1]
 
     history = []
     for msg in messages:
