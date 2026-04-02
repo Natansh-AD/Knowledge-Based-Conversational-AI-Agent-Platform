@@ -1,5 +1,5 @@
 from agent.models import Agent
-from rag.processors.retriever import retrieve_chunks, format_history
+from rag.processors.retriever import retrieve_chunks
 from rag.processors.chunker import build_context
 from rag.llm.base import GeminiProvider
 from rag.processors.embeddings import is_query_allowed
@@ -25,13 +25,27 @@ def generate_agent_answer(agent_id, question, history):
 
     if not is_query_allowed(question):
         print("NOT ALLOWED")
-        return "I can only answer questions related to the uploaded documents."
+        chunks = None
+        context_found = False
+    else:
+        context_found, chunks = retrieve_chunks(question, agent)
 
-    chunks = retrieve_chunks(question, agent)
+    context = build_context(chunks) if chunks else ""
 
-    # If similarity gate fails
-    # if chunks is None:
-    #     return "I cannot find relevant information in the documents"
+    if context_found:
+        instruction = """
+        Answer the question based ONLY on the provided context.
+        If the answer is not in the context, say you cannot find it.
+        """
+    else:
+        instruction = """
+        The user's question is outside the scope of the documentation.
+
+        Politely explain that you cannot find the answer in the uploaded documents
+        and tell the user you can only help with questions related to those documents.
+        If the question is even slightly related to conetxt, then ask the user to try asking something related to the documentation by generating exactly 5 example question you can answer
+        and offer help on how to ask good questions related to the documentation.
+        """
 
     if chunks is None:
         context=""
@@ -45,7 +59,7 @@ def generate_agent_answer(agent_id, question, history):
         Context:
         {context}
 
-        Answer the question based ONLY on the provided context.
+        {instruction}.
 
         If the context does not contain the answer, answer politely how can you help as an agent to user and ask if he needs to give more specific question.
 

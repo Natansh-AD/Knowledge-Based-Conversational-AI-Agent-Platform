@@ -25,7 +25,7 @@ def retrieve_chunks(query, agent, top_k=5, rerank_top_n=20):
 
     results = list(results)
     if not results:
-        return None
+        return False, []
     
     # Rerank with cross encoder
     pairs = [(query, c.text) for c in results]
@@ -37,10 +37,8 @@ def retrieve_chunks(query, agent, top_k=5, rerank_top_n=20):
     top_score = scores.max() if len(scores) else 0
     avg_score = scores.mean() if len(scores) else 0
 
-    if avg_score < AVG_SIMILARITY_THRESHOLD and top_score < TOP_SIMILARITY_THRESHOLD:
-        return None
-    
-    return reranked_chunks[:top_k]
+    context_found = not (top_score < TOP_SIMILARITY_THRESHOLD and avg_score < AVG_SIMILARITY_THRESHOLD)
+    return context_found,reranked_chunks[:top_k]
 
 def get_history(chat):
     messages = ChatMessage.objects.filter(
