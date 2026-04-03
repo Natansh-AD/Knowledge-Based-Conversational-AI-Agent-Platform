@@ -58,13 +58,28 @@ def retrieve_chunks(query, agent, top_k=5, rerank_top_n=20):
     # HERE IN CASE OF RECURSIVE CHUNKING, CHUNK SCORES CAN BE OVERLAPPING
     # NEEDS TO DEPEND ON CHUNKING STRATEGY AND VECTOR DB PERFORMANCE
 
-    # if len(sorted_scores) > 1:
-    #     score_gap = sorted_scores[0] - sorted_scores[1]
-    # else:
-    #     score_gap = sorted_scores[0]
 
-    # if score_gap < 0.05:
-    #     status = "ambiguous"
+    if len(sorted_scores) > 1:
+        score_gap = sorted_scores[0] - sorted_scores[1]
+    else:
+        score_gap = sorted_scores[0]
+
+    top_score = sorted_scores[0]
+
+    if top_score > TOP_SIMILARITY_THRESHOLD:
+        if score_gap < 0.05:
+            status = "ambiguous"
+        else:
+            status = "high"
+
+    elif avg_score < AVG_SIMILARITY_THRESHOLD:
+        status = "low"
+
+    elif score_gap < 0.05:
+        status = "ambiguous"
+
+    else:
+        status = "partial"
 
     scored_chunks = sorted(zip(norm_scores, results), key=lambda x: x[0], reverse=True)
 
@@ -77,9 +92,9 @@ def retrieve_chunks(query, agent, top_k=5, rerank_top_n=20):
     ]
 
     if top_score > 0.7:
-        top_k = 3
+        top_k = 2
     elif top_score > 0.5:
-        top_k = 5
+        top_k = 4
     else:
         top_k = 0
 

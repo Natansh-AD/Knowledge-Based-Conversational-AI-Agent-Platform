@@ -22,7 +22,7 @@ def generate_agent_answer(agent_id, question, history):
 
     # 2.Guardrail: check if query is allowed
     if not is_query_allowed(question):
-        answer = generate_fallback_llm(agent, question, history)
+        answer = generate_fallback_llm(agent, question, history, agent.system_prompt)
         if answer:
             set_cache(cache_key, answer)
         return answer
@@ -37,7 +37,7 @@ def generate_agent_answer(agent_id, question, history):
 
     # 4.Routing Logic
     if status == "low":
-        answer = generate_fallback_llm(agent, question, history, chunks)
+        answer = generate_fallback_llm(agent, question, history, agent.system_prompt, top_score)
         if answer:
             set_cache(cache_key, answer)
         return answer
@@ -51,7 +51,7 @@ def generate_agent_answer(agent_id, question, history):
     elif status == "high":
         # Handle edge case: no chunks
         if not chunks:
-            answer = generate_fallback_llm(agent, question, history)
+            answer = generate_fallback_llm(agent, question, history, agent.system_prompt)
             if answer:
                 set_cache(cache_key, answer)
             return answer
@@ -60,19 +60,24 @@ def generate_agent_answer(agent_id, question, history):
         context = build_context(chunks) if chunks else ""
 
         prompt = f"""
-        Context:
-        {context}
+            You must answer STRICTLY using the provided context.
 
-        Answer ONLY from the context.
-        If the answer is not present, say you cannot find it.
+            CONTEXT:
+            {context}
 
-        Question: {question}
-        """
+            RULES:
+            - Answer ONLY from the context above.
+            - Do NOT use prior knowledge.
+            - Do NOT guess.
+
+            QUESTION:
+            {question}
+            """
 
         answer = provider.generate(
             system_prompt=agent.system_prompt,
             question=prompt,
-            history=history
+            history=[]
         )
 
         if answer:
@@ -87,42 +92,61 @@ def generate_agent_answer(agent_id, question, history):
     return answer
 
 
-def generate_fallback_llm(agent, question, history, chunks=None):
+def generate_fallback_llm(agent, question, history, system_prompt=None, top_score=None):
     """
-    Generate fallback response when query is out-of-scope.
-    Optionally show top chunk previews for richer suggestions.
+    Generates a fallback response using extracted topics from documents
+    instead of just document titles.
     """
-    doc_titles = list(agent.documents.values_list("name", flat=True))[:5]
-    chunk_preview = ""
-    if chunks:
-        chunk_preview = "\n".join([c.text[:200] for c in chunks[:2]])
+
+    # Get topics from documents
+    doc_topics = []
+    for doc in agent.documents.all()[:10]:
+        topics = doc.meta_data.get("topics", [])
+        if topics:
+            doc_topics.append(f"{doc.name}: {', '.join(topics)}")
+        else:
+            doc_topics.append(f"{doc.name}: (no topics extracted)")
 
     provider = GeminiProvider()
+
+    # Dynamic instruction block
+    if top_score is not None and top_score < 0.1:
+        instructions = """
+        - Politely say you couldn't find an exact answer from the available documents.
+        - Do NOT provide suggestions or additional help.
+        """
+    else:
+        instructions = """
+        - Politely say you couldn't find an exact answer if you cannot answer from document and prompt given
+        - Clearly explain what you CAN help with
+        - Suggest an example question if needed
+        - Keep it natural and helpful
+        - DO NOT answer the original question
+        """
 
     prompt = f"""
     User asked: "{question}"
 
     This question is outside the scope of the available documents.
 
-    The agent can help with topics related to:
-    {doc_titles}
-
-    {f'Example content from documents:\n{chunk_preview}' if chunk_preview else ''}
+    The agent can help with topics extracted from the documents:
+    {chr(10).join(doc_topics)}
 
     Instructions:
-    - Politely say you couldn't find an exact answer
-    - Clearly explain what you CAN help with
-    - Suggest 3–5 example questions
-    - Keep it natural and helpful
-    - DO NOT answer the original question
+    {instructions}
     """
 
-    return provider.generate(
-        system_prompt="You are a helpful assistant guiding users.",
-        question=prompt,
-        history=history
+    # Safe system prompt handling
+    final_system_prompt = (system_prompt or "") + (
+        "\nYou are a helpful assistant that guides users to understand "
+        "what topics the agent can assist with based on the documents it has."
     )
 
+    return provider.generate(
+        system_prompt=final_system_prompt,
+        question=prompt,
+        history=[]  # keep stateless for fallback
+    )
 
 def generate_clarification_llm(agent, question, chunks, history):
     """
@@ -140,13 +164,12 @@ def generate_clarification_llm(agent, question, chunks, history):
 
     Instructions:
     - Ask the user to clarify their question
-    - Suggest 2–3 possible interpretations
     - Keep it short and helpful
-    - DO NOT assume the answer
+    - Do NOT answer the question
+    - Only ask for clarification
     """
-
     return provider.generate(
-        system_prompt="You help users refine their questions.",
+        system_prompt="You are a helpful assistant that guides users to clarify their questions.",
         question=prompt,
         history=history
     )

@@ -35,6 +35,6 @@ def build_context(chunks, max_chars=6000):
     for chunk in chunks:
         if len(context) + len(chunk.text) > max_chars:
             break
-        context += chunk.text + "\n\n"
+        context += chunk.text + "\n\n ------ \n\n"
 
     return context

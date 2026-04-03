@@ -20,6 +20,7 @@ class Document(models.Model):
     last_modified_at = models.DateTimeField(auto_now=True)
 
     accessible_by = models.ManyToManyField(User, related_name="accessible_documents", blank=True)
+    meta_data = models.JSONField(blank=True, default=dict)
 
 class DocumentChunk(models.Model):
     document = models.ForeignKey(
